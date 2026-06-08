@@ -667,8 +667,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                               onTap: MurrtubeApi.hasCookies ? _showSaveBottomSheet : null,
                               child: _StatItem(
                                 icon: Icons.playlist_add_rounded,
-                                value: 'Save',
-                                label: '',
+                                value: '',
+                                label: 'Save',
                               ),
                             ),
                             Container(
@@ -851,21 +851,23 @@ class _StatItem extends StatelessWidget {
       children: [
         Icon(icon, size: 18, color: iconColor ?? AppColors.textMuted),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: AppColors.text,
+        if (value.isNotEmpty)
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.text,
+            ),
           ),
-        ),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 11,
-            color: AppColors.textMuted,
+        if (label.isNotEmpty)
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppColors.textMuted,
+            ),
           ),
-        ),
       ],
     );
   }
