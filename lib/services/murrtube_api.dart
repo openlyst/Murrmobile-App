@@ -344,7 +344,14 @@ class MurrtubeApi {
     final path = page == 1 ? '/$slug' : '/$slug?page=$page';
     final inertia = await _get(path);
     final props = inertia.props;
-    final user = User.fromJson(props['user'] as Map<String, dynamic>);
+
+    final userRaw = props['user'] ?? props['profile_user'] ?? props['author'];
+    if (userRaw == null || userRaw is! Map<String, dynamic>) {
+      debugPrint('ProfilePage missing user. Available props keys: ${props.keys.toList()}');
+      throw Exception('User not found for slug: $slug');
+    }
+    final user = User.fromJson(userRaw);
+
     final mediaList = (props['media'] as List<dynamic>? ?? [])
         .map((m) => Media.fromJson(m as Map<String, dynamic>))
         .toList();
