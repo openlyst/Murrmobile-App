@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../services/murrtube_api.dart';
 import '../utils/cookie_loader.dart';
+import '../theme/app_theme.dart';
 import 'cookie_setup_page.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -41,99 +43,285 @@ class _SettingsPageState extends State<SettingsPage> {
         _props?['video_quality_options'] as List<dynamic>? ?? [];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.primary,
+                ),
+              ),
+            )
           : ListView(
+              padding: const EdgeInsets.all(20),
               children: [
+                const Text(
+                  'Settings',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.text,
+                  ),
+                ),
+                const SizedBox(height: 24),
                 if (user != null) ...[
-                  ListTile(
-                    leading: user['avatar_url'] != null
-                        ? CircleAvatar(
-                            backgroundImage: NetworkImage(user['avatar_url']),
-                          )
-                        : const CircleAvatar(child: Icon(Icons.person)),
-                    title: Text(user['name'] ?? 'User'),
-                    subtitle: Text(user['slug'] ?? ''),
+                  _buildCard(
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            ClipOval(
+                              child: user['avatar_url'] != null
+                                  ? CachedNetworkImage(
+                                      imageUrl: user['avatar_url'],
+                                      width: 48,
+                                      height: 48,
+                                      fit: BoxFit.cover,
+                                      placeholder: (_, __) => Container(
+                                        color: AppColors.surfaceHighlight,
+                                      ),
+                                      errorWidget: (_, __, ___) => const Icon(
+                                        Icons.person,
+                                        color: AppColors.textMuted,
+                                      ),
+                                    )
+                                  : Container(
+                                      width: 48,
+                                      height: 48,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.surfaceHighlight,
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                      child: const Icon(
+                                        Icons.person,
+                                        color: AppColors.textMuted,
+                                      ),
+                                    ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    user['name'] ?? 'User',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                      color: AppColors.text,
+                                    ),
+                                  ),
+                                  if (user['slug'] != null)
+                                    Text(
+                                      '@${user['slug']}',
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: AppColors.textMuted,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        _buildActionTile(
+                          icon: Icons.logout,
+                          label: 'Log Out',
+                          iconColor: AppColors.error,
+                          onTap: () async {
+                            MurrtubeApi.clearCookies();
+                            await CookieLoader.clear();
+                            debugPrint('Logged out');
+                            if (mounted) _load();
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.logout),
-                    title: const Text('Log Out'),
-                    onTap: () async {
-                      MurrtubeApi.clearCookies();
-                      await CookieLoader.clear();
-                      debugPrint('Logged out');
-                      if (mounted) _load();
-                    },
-                  ),
-                  const Divider(),
+                  const SizedBox(height: 20),
                 ] else ...[
-                  ListTile(
-                    leading: const Icon(Icons.login),
-                    title: const Text('Log In'),
-                    subtitle: const Text('Login for uploads, comments, and notifications'),
-                    onTap: () async {
-                      final result = await Navigator.push<bool>(
-                        context,
-                        MaterialPageRoute(builder: (_) => const CookieSetupPage()),
-                      );
-                      if (result == true && mounted) {
-                        _load();
-                      }
-                    },
+                  _buildCard(
+                    child: _buildActionTile(
+                      icon: Icons.login,
+                      label: 'Log In',
+                      subtitle: 'For uploads, comments, and notifications',
+                      iconColor: AppColors.primary,
+                      onTap: () async {
+                        final result = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const CookieSetupPage()),
+                        );
+                        if (result == true && mounted) {
+                          _load();
+                        }
+                      },
+                    ),
                   ),
-                  const Divider(),
+                  const SizedBox(height: 20),
                 ],
-                const ListTile(
-                  title: Text('Appearance'),
-                  subtitle: Text('Theme settings'),
-                ),
-                ...themes.map((t) => ListTile(
-                      title: Text(t['name'] ?? 'Theme'),
-                      trailing: t['active'] == true
-                          ? const Icon(Icons.check)
-                          : null,
-                    )),
-                const Divider(),
-                const ListTile(
-                  title: Text('Video Quality'),
-                  subtitle: Text('Default playback quality'),
-                ),
-                ...qualityOptions.map((q) => ListTile(
-                      title: Text(q['label'] ?? q.toString()),
-                      trailing: q['active'] == true
-                          ? const Icon(Icons.check)
-                          : null,
-                    )),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.upload_file),
-                  title: const Text('Upload Video'),
-                  onTap: () => Navigator.pushNamed(context, '/upload'),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.notifications),
-                  title: const Text('Notifications'),
-                  onTap: () => Navigator.pushNamed(context, '/notifications'),
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.description),
-                  title: const Text('Terms of Service'),
-                  onTap: () => Navigator.pushNamed(context, '/about/terms'),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.privacy_tip),
-                  title: const Text('Privacy Policy'),
-                  onTap: () => Navigator.pushNamed(context, '/about/privacy'),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.cookie),
-                  title: const Text('Cookie Policy'),
-                  onTap: () => Navigator.pushNamed(context, '/about/cookies'),
+                if (themes.isNotEmpty) ...[
+                  _SectionLabel('Appearance'),
+                  _buildCard(
+                    child: Column(
+                      children: themes
+                          .map((t) => _buildActionTile(
+                                icon: t['active'] == true
+                                    ? Icons.check_circle
+                                    : Icons.circle_outlined,
+                                label: t['name'] ?? 'Theme',
+                                iconColor: t['active'] == true
+                                    ? AppColors.secondary
+                                    : AppColors.textMuted,
+                                showDivider: t != themes.last,
+                                onTap: () {},
+                              ))
+                          .toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+                if (qualityOptions.isNotEmpty) ...[
+                  _SectionLabel('Video Quality'),
+                  _buildCard(
+                    child: Column(
+                      children: qualityOptions
+                          .map((q) => _buildActionTile(
+                                icon: q['active'] == true
+                                    ? Icons.check_circle
+                                    : Icons.circle_outlined,
+                                label: q['label'] ?? q.toString(),
+                                iconColor: q['active'] == true
+                                    ? AppColors.secondary
+                                    : AppColors.textMuted,
+                                showDivider: q != qualityOptions.last,
+                                onTap: () {},
+                              ))
+                          .toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+                _SectionLabel('Legal'),
+                _buildCard(
+                  child: Column(
+                    children: [
+                      _buildActionTile(
+                        icon: Icons.description_outlined,
+                        label: 'Terms of Service',
+                        onTap: () => Navigator.pushNamed(context, '/about/terms'),
+                        showDivider: true,
+                      ),
+                      _buildActionTile(
+                        icon: Icons.privacy_tip_outlined,
+                        label: 'Privacy Policy',
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/about/privacy'),
+                        showDivider: true,
+                      ),
+                      _buildActionTile(
+                        icon: Icons.cookie_outlined,
+                        label: 'Cookie Policy',
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/about/cookies'),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
+    );
+  }
+
+  Widget _buildCard({required Widget child}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.divider.withValues(alpha: 0.3),
+        ),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: child,
+    );
+  }
+
+  Widget _buildActionTile({
+    required IconData icon,
+    required String label,
+    String? subtitle,
+    Color? iconColor,
+    VoidCallback? onTap,
+    bool showDivider = false,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: showDivider
+            ? BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: AppColors.divider.withValues(alpha: 0.3),
+                  ),
+                ),
+              )
+            : null,
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: iconColor ?? AppColors.textMuted),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.text,
+                    ),
+                  ),
+                  if (subtitle != null)
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              size: 18,
+              color: AppColors.textMuted,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _SectionLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 10),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textMuted,
+          letterSpacing: 0.5,
+        ),
+      ),
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/murrtube_api.dart';
+import '../theme/app_theme.dart';
 
 class AboutPage extends StatefulWidget {
   final String type;
@@ -67,27 +68,99 @@ class _AboutPageState extends State<AboutPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_title)),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_props?['effective_date'] != null)
-                    Text(
-                      'Effective as of: ${_props!['effective_date']}',
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                  const SizedBox(height: 16),
-                  // The raw HTML content isn't easily rendered; show a placeholder
-                  const Text(
-                    'Content loaded from Murrtube. For full text, visit the website.',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ],
+          ? const Center(
+              child: SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.primary,
+                ),
               ),
+            )
+          : ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back_ios_new,
+                          size: 16,
+                          color: AppColors.text,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Text(
+                      _title,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.text,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.divider.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_props?['effective_date'] != null) ...[
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.calendar_today_outlined,
+                              size: 16,
+                              color: AppColors.textMuted,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Effective ${_props!['effective_date']}',
+                              style: const TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Container(
+                          height: 1,
+                          color: AppColors.divider.withValues(alpha: 0.3),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      const Text(
+                        'Content loaded from Murrtube. For the full text, visit the website.',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: AppColors.text,
+                          height: 1.6,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
     );
   }

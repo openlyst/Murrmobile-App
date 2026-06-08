@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/media.dart';
 import '../models/announcement.dart';
 import '../services/murrtube_api.dart';
+import '../theme/app_theme.dart';
 import '../widgets/video_card.dart';
 import '../widgets/announcement_banner.dart';
 import 'video_detail_page.dart';
@@ -66,39 +67,20 @@ class _HomePageState extends State<HomePage> {
     await _load();
   }
 
+  int _crossAxisCount(double width) {
+    if (width >= 1600) return 6;
+    if (width >= 1200) return 5;
+    if (width >= 900) return 4;
+    if (width >= 600) return 3;
+    return 2;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final cols = _crossAxisCount(size.width);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Murrtube'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: Row(
-            children: [
-              _TabButton(
-                label: 'Trending',
-                active: _currentTab == 'trending',
-                onTap: () => _switchTab('trending'),
-              ),
-              _TabButton(
-                label: 'Subscriptions',
-                active: _currentTab == 'subscriptions',
-                onTap: () => _switchTab('subscriptions'),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () => Navigator.pushNamed(context, '/search'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => Navigator.pushNamed(context, '/settings'),
-          ),
-        ],
-      ),
       body: RefreshIndicator(
         onRefresh: () async {
           _currentPage = 1;
@@ -106,50 +88,107 @@ class _HomePageState extends State<HomePage> {
         },
         child: CustomScrollView(
           slivers: [
-            if (_announcements.isNotEmpty)
-              SliverToBoxAdapter(
-                child: Column(
-                  children: _announcements
-                      .map((a) => AnnouncementBanner(announcement: a))
-                      .toList(),
-                ),
-              ),
-            SliverPadding(
-              padding: const EdgeInsets.all(8),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 16 / 14,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    if (index >= _media.length) {
-                      if (_hasMore) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) => _loadMore());
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      return const SizedBox.shrink();
-                    }
-                    return VideoCard(
-                      media: _media[index],
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => VideoDetailPage(
-                              shortCode: _media[index].shortCode,
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  childCount: _media.length + (_hasMore ? 1 : 0),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                child: Row(
+                  children: [
+                    _PillTab(
+                      label: 'Trending',
+                      active: _currentTab == 'trending',
+                      onTap: () => _switchTab('trending'),
+                    ),
+                    const SizedBox(width: 10),
+                    _PillTab(
+                      label: 'Subscriptions',
+                      active: _currentTab == 'subscriptions',
+                      onTap: () => _switchTab('subscriptions'),
+                    ),
+                  ],
                 ),
               ),
             ),
+            if (_announcements.isNotEmpty)
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: AnnouncementBanner(announcement: _announcements[index]),
+                    ),
+                    childCount: _announcements.length,
+                  ),
+                ),
+              ),
+            if (_loading && _media.isEmpty)
+              const SliverFillRemaining(
+                child: Center(
+                  child: SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              )
+            else if (!_loading && _media.isEmpty)
+              const SliverFillRemaining(
+                child: Center(
+                  child: Text(
+                    'No videos found',
+                    style: TextStyle(color: AppColors.textMuted),
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.all(20),
+                sliver: SliverGrid(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: cols,
+                    childAspectRatio: 16 / 15,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      if (index >= _media.length) {
+                        if (_hasMore) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) => _loadMore());
+                          return const Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      }
+                      return VideoCard(
+                        media: _media[index],
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => VideoDetailPage(
+                                shortCode: _media[index].shortCode,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    childCount: _media.length + (_hasMore ? 1 : 0),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -157,12 +196,12 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class _TabButton extends StatelessWidget {
+class _PillTab extends StatelessWidget {
   final String label;
   final bool active;
   final VoidCallback onTap;
 
-  const _TabButton({
+  const _PillTab({
     required this.label,
     required this.active,
     required this.onTap,
@@ -170,30 +209,27 @@ class _TabButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          height: 48,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: active
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.transparent,
-                width: 2,
-              ),
-            ),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: active
-                  ? Theme.of(context).colorScheme.primary
-                  : Colors.grey,
-              fontWeight: active ? FontWeight.bold : FontWeight.normal,
-            ),
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+        decoration: BoxDecoration(
+          color: active ? AppColors.primary : AppColors.surfaceHighlight,
+          borderRadius: BorderRadius.circular(20),
+          border: active
+              ? null
+              : Border.all(
+                  color: AppColors.divider.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: active ? Colors.white : AppColors.textMuted,
+            fontSize: 13,
+            fontWeight: active ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
       ),

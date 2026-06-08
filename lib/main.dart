@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'services/murrtube_api.dart';
 import 'utils/cookie_loader.dart';
-import 'pages/home_page.dart';
-import 'pages/search_page.dart';
-import 'pages/settings_page.dart';
-import 'pages/upload_page.dart';
-import 'pages/notifications_page.dart';
+import 'theme/app_theme.dart';
+import 'widgets/responsive_shell.dart';
 import 'pages/about_page.dart';
 
 void main() async {
@@ -24,19 +21,10 @@ class MurrtubeApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Murrtube',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF7C3AED),
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
-      home: const HomePage(),
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.dark,
+      home: const ResponsiveShell(),
       routes: {
-        '/search': (_) => const SearchPage(),
-        '/settings': (_) => const SettingsPage(),
-        '/upload': (_) => const UploadPage(),
-        '/notifications': (_) => const NotificationsPage(),
         '/about/terms': (_) => const AboutPage(type: 'terms'),
         '/about/privacy': (_) => const AboutPage(type: 'privacy'),
         '/about/cookies': (_) => const AboutPage(type: 'cookies'),
