@@ -6,6 +6,7 @@ import '../models/comment.dart';
 import '../models/playlist.dart';
 import '../services/murrtube_api.dart';
 import '../widgets/video_card.dart';
+import 'profile_page.dart';
 
 class VideoDetailPage extends StatefulWidget {
   final String shortCode;
@@ -552,61 +553,73 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                         ),
                       ),
                       const SizedBox(height: 14),
-                      Row(
-                        children: [
-                          ClipOval(
-                            child: medium.user.avatarUrl != null
-                                ? CachedNetworkImage(
-                                    imageUrl: medium.user.avatarUrl!,
-                                    width: 36,
-                                    height: 36,
-                                    fit: BoxFit.cover,
-                                    placeholder: (_, __) => Container(
-                                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                                    ),
-                                    errorWidget: (_, __, ___) => Icon(
-                                      Icons.person,
-                                      color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
-                                    ),
-                                  )
-                                : Container(
-                                    width: 36,
-                                    height: 36,
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                                      borderRadius: BorderRadius.circular(18),
-                                    ),
-                                    child: Icon(
-                                      Icons.person,
-                                      size: 18,
-                                      color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
-                                    ),
-                                  ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  medium.user.name,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14,
-                                    color: Theme.of(context).colorScheme.onSurface,
-                                  ),
-                                ),
-                                Text(
-                                  '@${medium.user.slug}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
-                                  ),
-                                ),
-                              ],
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ProfilePage(
+                                slug: medium.user.slug,
+                              ),
                             ),
-                          ),
-                        ],
+                          );
+                        },
+                        child: Row(
+                          children: [
+                            ClipOval(
+                              child: medium.user.avatarUrl != null
+                                  ? CachedNetworkImage(
+                                      imageUrl: medium.user.avatarUrl!,
+                                      width: 36,
+                                      height: 36,
+                                      fit: BoxFit.cover,
+                                      placeholder: (_, __) => Container(
+                                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                      ),
+                                      errorWidget: (_, __, ___) => Icon(
+                                        Icons.person,
+                                        color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
+                                      ),
+                                    )
+                                  : Container(
+                                      width: 36,
+                                      height: 36,
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                        borderRadius: BorderRadius.circular(18),
+                                      ),
+                                      child: Icon(
+                                        Icons.person,
+                                        size: 18,
+                                        color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
+                                      ),
+                                    ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    medium.user.name,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  Text(
+                                    '@${medium.user.slug}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 14),
                       Container(
@@ -1141,35 +1154,45 @@ class _CommentTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipOval(
-            child: comment.user.avatarUrl != null
-                ? CachedNetworkImage(
-                    imageUrl: comment.user.avatarUrl!,
-                    width: 32,
-                    height: 32,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) => Container(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ProfilePage(slug: comment.user.slug),
+                ),
+              );
+            },
+            child: ClipOval(
+              child: comment.user.avatarUrl != null
+                  ? CachedNetworkImage(
+                      imageUrl: comment.user.avatarUrl!,
+                      width: 32,
+                      height: 32,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => Container(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      ),
+                      errorWidget: (_, __, ___) => Icon(
+                        Icons.person,
+                        size: 16,
+                        color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
+                      ),
+                    )
+                  : Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(
+                        Icons.person,
+                        size: 16,
+                        color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
+                      ),
                     ),
-                    errorWidget: (_, __, ___) => Icon(
-                      Icons.person,
-                      size: 16,
-                      color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
-                    ),
-                  )
-                : Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Icon(
-                      Icons.person,
-                      size: 16,
-                      color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
-                    ),
-                  ),
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -1178,12 +1201,22 @@ class _CommentTile extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      comment.user.name,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                        color: Theme.of(context).colorScheme.onSurface,
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ProfilePage(slug: comment.user.slug),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        comment.user.name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
                     ),
                     if (comment.isCreator)

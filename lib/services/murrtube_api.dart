@@ -36,6 +36,7 @@ class MurrtubeApi {
   static String? _cookieString;
 
   static bool get hasCookies => _cookieString != null && _cookieString!.isNotEmpty;
+  static String? currentUserSlug;
 
   static void setCookies(String cookies) {
     _cookieString = cookies;
@@ -44,6 +45,7 @@ class MurrtubeApi {
   static void clearCookies() {
     _cookieString = null;
     _inertiaVersion = null;
+    currentUserSlug = null;
   }
 
   static String? _inertiaVersion;
@@ -235,6 +237,9 @@ class MurrtubeApi {
     final currentUser = props['current_user'] != null
         ? User.fromJson(props['current_user'] as Map<String, dynamic>)
         : null;
+    if (currentUser != null) {
+      currentUserSlug = currentUser.slug;
+    }
     return (
       media: mediaList,
       pagination: pagination,
@@ -320,6 +325,105 @@ class MurrtubeApi {
       items: items,
       displayCap: props['display_cap'] as int? ?? 0,
     );
+  }
+
+  // User Profile
+  static Future<({
+    User user,
+    List<Media> media,
+    Pagination pagination,
+    List<Playlist> playlists,
+    bool isSubscribed,
+    bool isSelf,
+    User? currentUser,
+    int? subscribersCount,
+    int? subscriptionsCount,
+    String? bio,
+    String? telegramUrl,
+  })> getUserProfile(String slug, {int page = 1}) async {
+    final path = page == 1 ? '/$slug' : '/$slug?page=$page';
+    final inertia = await _get(path);
+    final props = inertia.props;
+    final user = User.fromJson(props['user'] as Map<String, dynamic>);
+    final mediaList = (props['media'] as List<dynamic>? ?? [])
+        .map((m) => Media.fromJson(m as Map<String, dynamic>))
+        .toList();
+    final pagination = Pagination.fromJson(
+      props['pagination'] as Map<String, dynamic>? ??
+          {'page': 1, 'pages': 1, 'count': mediaList.length, 'next': null, 'prev': null},
+    );
+    final playlists = (props['playlists'] as List<dynamic>? ?? [])
+        .map((p) => Playlist.fromJson(p as Map<String, dynamic>))
+        .toList();
+    final currentUser = props['current_user'] != null
+        ? User.fromJson(props['current_user'] as Map<String, dynamic>)
+        : null;
+    if (currentUser != null) {
+      currentUserSlug = currentUser.slug;
+    }
+    final isSelf = props['is_self'] as bool? ?? false;
+    if (isSelf) {
+      currentUserSlug = user.slug;
+    }
+    return (
+      user: user,
+      media: mediaList,
+      pagination: pagination,
+      playlists: playlists,
+      isSubscribed: props['is_subscribed'] as bool? ?? false,
+      isSelf: isSelf,
+      currentUser: currentUser,
+      subscribersCount: props['subscribers_count'] as int? ?? props['subscribers'] as int?,
+      subscriptionsCount: props['subscriptions_count'] as int? ?? props['subscriptions'] as int?,
+      bio: props['bio'] as String? ?? props['description'] as String?,
+      telegramUrl: props['telegram_url'] as String?,
+    );
+  }
+
+  static Future<void> subscribeToUser(String userId) async {
+    final token = await _fetchCsrfToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl/subscriptions'),
+      headers: {
+        'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Referer': baseUrl,
+        'Origin': baseUrl,
+        'X-Requested-With': 'XMLHttpRequest',
+        'x-csrf-token': token,
+        if (_cookieString != null) 'Cookie': _cookieString!,
+      },
+      body: {'subscription[subscribed_to_id]': userId},
+    );
+    _updateCookiesFromResponse(response);
+    debugPrint('subscribeToUser status: ${response.statusCode}');
+    if (response.statusCode != 200) {
+      throw HttpException('HTTP ${response.statusCode}');
+    }
+  }
+
+  static Future<void> unsubscribeFromUser(String userId) async {
+    final token = await _fetchCsrfToken();
+    final response = await http.delete(
+      Uri.parse('$baseUrl/subscriptions/$userId'),
+      headers: {
+        'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Referer': baseUrl,
+        'Origin': baseUrl,
+        'X-Requested-With': 'XMLHttpRequest',
+        'x-csrf-token': token,
+        if (_cookieString != null) 'Cookie': _cookieString!,
+      },
+    );
+    _updateCookiesFromResponse(response);
+    debugPrint('unsubscribeFromUser status: ${response.statusCode}');
+    if (response.statusCode != 200) {
+      throw HttpException('HTTP ${response.statusCode}');
+    }
   }
 
   // Settings

@@ -5,6 +5,7 @@ import '../pages/search_page.dart';
 import '../pages/upload_page.dart';
 import '../pages/notifications_page.dart';
 import '../pages/settings_page.dart';
+import '../pages/profile_page.dart';
 
 class NavItem {
   final String label;
@@ -312,6 +313,53 @@ class _DesktopLayout extends StatelessWidget {
                     },
                   ),
                 ),
+                const SizedBox(height: 16),
+                if (MurrtubeApi.hasCookies)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        onTap: () {
+                          final slug = MurrtubeApi.currentUserSlug;
+                          if (slug != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ProfilePage(slug: slug),
+                              ),
+                            );
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.person_outline,
+                                color: mutedColor,
+                                size: 22,
+                              ),
+                              const SizedBox(width: 14),
+                              Text(
+                                'Profile',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: mutedColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 const SizedBox(height: 16),
               ],
             ),

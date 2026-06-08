@@ -7,6 +7,7 @@ import '../utils/cookie_loader.dart';
 import '../utils/app_preferences.dart';
 import '../providers/theme_provider.dart';
 import 'login_page.dart';
+import 'profile_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -56,6 +57,10 @@ class _SettingsPageState extends State<SettingsPage> {
     }
     try {
       final props = await MurrtubeApi.getSettings();
+      final user = props['current_user'] as Map<String, dynamic>?;
+      if (user != null && user['slug'] != null) {
+        MurrtubeApi.currentUserSlug = user['slug'] as String;
+      }
       setState(() {
         _props = props;
         _loading = false;
@@ -117,10 +122,23 @@ class _SettingsPageState extends State<SettingsPage> {
                   _buildCard(
                     child: Column(
                       children: [
-                        Row(
-                          children: [
-                            ClipOval(
-                              child: user['avatar_url'] != null
+                        GestureDetector(
+                          onTap: () {
+                            if (user['slug'] != null) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ProfilePage(
+                                    slug: user['slug'] as String,
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          child: Row(
+                            children: [
+                              ClipOval(
+                                child: user['avatar_url'] != null
                                   ? CachedNetworkImage(
                                       imageUrl: user['avatar_url'],
                                       width: 48,
@@ -172,6 +190,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               ),
                             ),
                           ],
+                        ),
                         ),
                         const SizedBox(height: 12),
                         _buildActionTile(

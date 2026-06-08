@@ -6,6 +6,7 @@ import '../models/tag.dart';
 import '../services/murrtube_api.dart';
 import '../widgets/video_card.dart';
 import 'video_detail_page.dart';
+import 'profile_page.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -339,20 +340,29 @@ class _UserTile extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.dividerColor.withValues(alpha: 0.3),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProfilePage(slug: user.slug),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: theme.dividerColor.withValues(alpha: 0.3),
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          ClipOval(
-            child: user.avatarUrl != null
+        child: Row(
+          children: [
+            ClipOval(
+              child: user.avatarUrl != null
                 ? CachedNetworkImage(
                     imageUrl: user.avatarUrl!,
                     width: 40,
@@ -410,6 +420,7 @@ class _UserTile extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }
