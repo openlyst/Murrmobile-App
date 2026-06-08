@@ -349,14 +349,37 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                           ),
                                           // Thumb / head
                                           Positioned(
-                                            left: (currentFraction * barWidth - 6).clamp(0.0, barWidth - 12),
-                                            child: Container(
-                                              width: 12,
-                                              height: 12,
+                                            left: (currentFraction * barWidth - 8).clamp(0.0, barWidth - 16),
+                                            child: AnimatedContainer(
+                                              duration: const Duration(milliseconds: 150),
+                                              curve: Curves.easeOut,
+                                              width: _isDraggingTimeline ? 16 : 12,
+                                              height: _isDraggingTimeline ? 16 : 12,
                                               decoration: BoxDecoration(
-                                                color: AppColors.primary,
+                                                color: Colors.white,
                                                 shape: BoxShape.circle,
-                                                border: Border.all(color: Colors.white, width: 2),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: AppColors.primary.withValues(alpha: 0.4),
+                                                    blurRadius: 6,
+                                                    spreadRadius: 1,
+                                                  ),
+                                                  BoxShadow(
+                                                    color: Colors.black.withValues(alpha: 0.3),
+                                                    blurRadius: 2,
+                                                    offset: const Offset(0, 1),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Center(
+                                                child: Container(
+                                                  width: 6,
+                                                  height: 6,
+                                                  decoration: const BoxDecoration(
+                                                    color: AppColors.primary,
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                ),
                                               ),
                                             ),
                                           ),
