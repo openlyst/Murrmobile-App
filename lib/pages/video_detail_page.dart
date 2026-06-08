@@ -27,6 +27,9 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   bool _skipForward = true;
   bool _isDraggingTimeline = false;
   double _dragProgress = 0;
+  bool _viewerCanLike = false;
+  bool _viewerLiked = false;
+  int _likesCount = 0;
 
   @override
   void initState() {
@@ -47,6 +50,9 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
         _medium = result.medium;
         _comments = result.comments;
         _watchMore = result.watchMore;
+        _viewerCanLike = result.viewerCanLike;
+        _viewerLiked = result.medium.viewerLiked;
+        _likesCount = result.medium.likesCount;
         _loading = false;
       });
       if (_medium?.hlsUrl != null) {
@@ -55,6 +61,35 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     } catch (e) {
       debugPrint('VideoDetailPage load error: $e');
       setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _toggleLike() async {
+    if (_medium == null || !_viewerCanLike) return;
+    final medium = _medium!;
+    final wasLiked = _viewerLiked;
+    setState(() {
+      _viewerLiked = !wasLiked;
+      _likesCount += wasLiked ? -1 : 1;
+    });
+    try {
+      if (wasLiked) {
+        await MurrtubeApi.unlikeVideo(medium.id);
+      } else {
+        await MurrtubeApi.likeVideo(medium.id);
+      }
+    } catch (e) {
+      debugPrint('Toggle like error: $e');
+      // Revert on error
+      setState(() {
+        _viewerLiked = wasLiked;
+        _likesCount += wasLiked ? 1 : -1;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to ${wasLiked ? 'unlike' : 'like'}: $e')),
+        );
+      }
     }
   }
 
@@ -549,10 +584,16 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                               height: 28,
                               color: AppColors.divider.withValues(alpha: 0.3),
                             ),
-                            _StatItem(
-                              icon: Icons.thumb_up_outlined,
-                              value: '${medium.likesCount}',
-                              label: 'Likes',
+                            GestureDetector(
+                              onTap: _viewerCanLike ? _toggleLike : null,
+                              child: _StatItem(
+                                icon: _viewerLiked
+                                    ? Icons.favorite_rounded
+                                    : Icons.favorite_border_rounded,
+                                value: '$_likesCount',
+                                label: 'Likes',
+                                iconColor: _viewerLiked ? AppColors.primary : null,
+                              ),
                             ),
                             Container(
                               width: 1,
@@ -718,11 +759,13 @@ class _StatItem extends StatelessWidget {
   final IconData icon;
   final String value;
   final String label;
+  final Color? iconColor;
 
   const _StatItem({
     required this.icon,
     required this.value,
     required this.label,
+    this.iconColor,
   });
 
   @override
@@ -730,7 +773,7 @@ class _StatItem extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 18, color: AppColors.textMuted),
+        Icon(icon, size: 18, color: iconColor ?? AppColors.textMuted),
         const SizedBox(height: 4),
         Text(
           value,

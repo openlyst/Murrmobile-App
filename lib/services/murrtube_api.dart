@@ -47,6 +47,24 @@ class MurrtubeApi {
 
   static String? _inertiaVersion;
 
+  static void _updateCookiesFromResponse(http.Response response) {
+    final setCookies = response.headers['set-cookie'];
+    if (setCookies == null || _cookieString == null) return;
+
+    final jar = <String, String>{};
+    for (final part in _cookieString!.split('; ')) {
+      final i = part.indexOf('=');
+      if (i != -1) jar[part.substring(0, i)] = part.substring(i + 1);
+    }
+    for (final raw in setCookies.split(',')) {
+      final c = raw.split(';').first.trim();
+      final i = c.indexOf('=');
+      if (i != -1) jar[c.substring(0, i)] = c.substring(i + 1);
+    }
+    _cookieString = jar.entries.map((e) => '${e.key}=${e.value}').join('; ');
+    debugPrint('Updated cookies from response');
+  }
+
   static Map<String, String> _headers({String? inertiaVersion}) {
     final h = {
       'User-Agent':
@@ -94,6 +112,7 @@ class MurrtubeApi {
     );
 
     var body = utf8.decode(response.bodyBytes);
+    _updateCookiesFromResponse(response);
     debugPrint('First response status: ${response.statusCode}');
     debugPrint('First response body starts with: ${body.isNotEmpty ? body.substring(0, body.length.clamp(0, 60)) : "(empty)"}');
 
@@ -116,6 +135,7 @@ class MurrtubeApi {
             if (_cookieString != null) 'Cookie': _cookieString!,
           },
         );
+        _updateCookiesFromResponse(rootResp);
         final rootBody = utf8.decode(rootResp.bodyBytes);
         debugPrint('Root page status: ${rootResp.statusCode}');
         debugPrint('Root page body starts with: ${rootBody.isNotEmpty ? rootBody.substring(0, rootBody.length.clamp(0, 60)) : "(empty)"}');
@@ -130,6 +150,7 @@ class MurrtubeApi {
           uri,
           headers: _headers(inertiaVersion: _inertiaVersion),
         );
+        _updateCookiesFromResponse(response);
         body = utf8.decode(response.bodyBytes);
         debugPrint('Retry response status: ${response.statusCode}');
         debugPrint('Retry response body starts with: ${body.isNotEmpty ? body.substring(0, body.length.clamp(0, 60)) : "(empty)"}');
@@ -331,5 +352,78 @@ class MurrtubeApi {
   static Future<Map<String, dynamic>> getWhatsNew() async {
     final inertia = await _get('/about/whats-new');
     return inertia.props;
+  }
+
+  // Like / Unlike
+  static Future<String> _fetchCsrfToken() async {
+    // The XSRF-TOKEN cookie may be stale. Fetch a fresh token from HTML.
+    final response = await http.get(
+      Uri.parse(baseUrl),
+      headers: {
+        'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Referer': baseUrl,
+        if (_cookieString != null) 'Cookie': _cookieString!,
+      },
+    );
+    _updateCookiesFromResponse(response);
+    final html = utf8.decode(response.bodyBytes);
+    final match = RegExp(r'<meta name="csrf-token" content="([^"]+)"').firstMatch(html);
+    final token = match?.group(1);
+    debugPrint('Fetched CSRF token: ${token != null ? "${token.substring(0, token.length.clamp(0, 30))}..." : "NOT FOUND"}');
+    if (token == null || token.isEmpty) {
+      throw Exception('CSRF token not found in HTML');
+    }
+    return token;
+  }
+
+  static Future<void> likeVideo(String mediumId) async {
+    final token = await _fetchCsrfToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl/likes'),
+      headers: {
+        'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Referer': baseUrl,
+        'Origin': baseUrl,
+        'X-Requested-With': 'XMLHttpRequest',
+        'x-csrf-token': token,
+        if (_cookieString != null) 'Cookie': _cookieString!,
+      },
+      body: {'like[medium_id]': mediumId},
+    );
+    _updateCookiesFromResponse(response);
+    debugPrint('likeVideo status: ${response.statusCode}');
+    debugPrint('likeVideo response body: ${utf8.decode(response.bodyBytes)}');
+    if (response.statusCode != 200) {
+      throw HttpException('HTTP ${response.statusCode}');
+    }
+  }
+
+  static Future<void> unlikeVideo(String mediumId) async {
+    final token = await _fetchCsrfToken();
+    final response = await http.delete(
+      Uri.parse('$baseUrl/likes/$mediumId'),
+      headers: {
+        'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Referer': baseUrl,
+        'Origin': baseUrl,
+        'X-Requested-With': 'XMLHttpRequest',
+        'x-csrf-token': token,
+        if (_cookieString != null) 'Cookie': _cookieString!,
+      },
+    );
+    _updateCookiesFromResponse(response);
+    debugPrint('unlikeVideo status: ${response.statusCode}');
+    debugPrint('unlikeVideo response body: ${utf8.decode(response.bodyBytes)}');
+    if (response.statusCode != 200) {
+      throw HttpException('HTTP ${response.statusCode}');
+    }
   }
 }
