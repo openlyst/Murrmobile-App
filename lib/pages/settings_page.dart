@@ -3,7 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../services/murrtube_api.dart';
 import '../utils/cookie_loader.dart';
 import '../theme/app_theme.dart';
-import 'cookie_setup_page.dart';
+import 'login_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -153,7 +153,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         final result = await Navigator.push<bool>(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => const CookieSetupPage()),
+                              builder: (_) => const LoginPage()),
                         );
                         if (result == true && mounted) {
                           _load();
