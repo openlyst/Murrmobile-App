@@ -1,6 +1,6 @@
 # Murrtube Mobile
 
-A native Flutter app for [murrtube.net](https://murrtube.net/), reverse-engineered from the website's Inertia.js API.
+A native app for [murrtube.net](https://murrtube.net/), reverse-engineered from the website.
 
 ## Features
 
