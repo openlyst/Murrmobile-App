@@ -26,7 +26,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _currentTab = widget.tab;
-    _load();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
 
   Future<void> _load() async {
@@ -61,7 +61,7 @@ class _HomePageState extends State<HomePage> {
       _media = [];
       _hasMore = true;
     });
-    _load();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
 
   Future<void> _loadMore() async {
@@ -131,7 +131,7 @@ class _HomePageState extends State<HomePage> {
                   (context, index) {
                     if (index >= _media.length) {
                       if (_hasMore) {
-                        _loadMore();
+                        WidgetsBinding.instance.addPostFrameCallback((_) => _loadMore());
                         return const Center(child: CircularProgressIndicator());
                       }
                       return const SizedBox.shrink();
