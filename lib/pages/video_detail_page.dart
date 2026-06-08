@@ -164,25 +164,6 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                 ),
                               ),
                             ),
-                    Positioned(
-                      top: 12,
-                      left: 12,
-                      child: GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.arrow_back_ios_new,
-                            size: 18,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
                     // Double tap zones
                     if (_controller != null && _controller!.value.isInitialized)
                       Positioned.fill(
@@ -336,6 +317,26 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                           ),
                         ),
                       ),
+                    // Back button (last so it sits on top)
+                    Positioned(
+                      top: 12,
+                      left: 12,
+                      child: GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_back_ios_new,
+                            size: 18,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
                         ],
                       ),
                     ),
