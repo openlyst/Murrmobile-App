@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/media.dart';
@@ -33,6 +34,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   bool _viewerLiked = false;
   int _likesCount = 0;
   bool _isMuted = false;
+  bool _isFullscreen = false;
 
   @override
   void initState() {
@@ -174,6 +176,31 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     _controller?.setVolume(muted ? 0.0 : 1.0);
   }
 
+  void _toggleFullscreen() {
+    setState(() => _isFullscreen = !_isFullscreen);
+    if (_isFullscreen) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+    } else {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+    }
+  }
+
+  Future<bool> _onWillPop() async {
+    if (_isFullscreen) {
+      _toggleFullscreen();
+      return false;
+    }
+    return true;
+  }
+
   void _onDoubleTap(bool forward) {
     if (_controller == null || !_controller!.value.isInitialized) return;
     final pos = _controller!.value.position;
@@ -238,25 +265,159 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
       );
     }
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Video Player / Thumbnail
-                Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1200),
-                    child: AspectRatio(
-                      aspectRatio: 16 / 9,
-                      child: Container(
-                        color: Colors.black,
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
+    if (_isFullscreen) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: WillPopScope(
+          onWillPop: _onWillPop,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (_controller != null && _controller!.value.isInitialized)
+                FittedBox(
+                  fit: BoxFit.contain,
+                  child: SizedBox(
+                    width: _controller!.value.size.width,
+                    height: _controller!.value.size.height,
+                    child: VideoPlayer(_controller!),
+                  ),
+                )
+              else
+                CachedNetworkImage(
+                  imageUrl: medium.thumbnailUrl,
+                  fit: BoxFit.contain,
+                  placeholder: (_, __) => Container(
+                    color: Colors.black,
+                  ),
+                  errorWidget: (_, __, ___) => Container(
+                    color: Colors.black,
+                    child: const Icon(
+                      Icons.broken_image_outlined,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              // Tap to play/pause
+              if (_controller != null && _controller!.value.isInitialized)
+                Positioned.fill(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _controller!.value.isPlaying
+                            ? _controller!.pause()
+                            : _controller!.play();
+                      });
+                    },
+                    child: Container(
+                      color: Colors.transparent,
+                      child: Center(
+                        child: AnimatedOpacity(
+                          opacity: _controller!.value.isPlaying ? 0 : 1,
+                          duration: const Duration(milliseconds: 200),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            child: const Icon(
+                              Icons.play_arrow_rounded,
+                              size: 40,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              // Back button
+              Positioned(
+                top: 12,
+                left: 12,
+                child: GestureDetector(
+                  onTap: () => _toggleFullscreen(),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back_ios_new,
+                      size: 18,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              // Mute button
+              Positioned(
+                top: 12,
+                right: 60,
+                child: GestureDetector(
+                  onTap: _toggleMute,
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      _isMuted ? Icons.volume_off : Icons.volume_up,
+                      size: 20,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              // Exit fullscreen button
+              Positioned(
+                top: 12,
+                right: 12,
+                child: GestureDetector(
+                  onTap: _toggleFullscreen,
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.fullscreen_exit,
+                      size: 20,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.background,
+        body: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Video Player / Thumbnail
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1200),
+                      child: AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: Container(
+                          color: Colors.black,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
                             if (_controller != null && _controller!.value.isInitialized)
                               FittedBox(
                                 fit: BoxFit.contain,
@@ -554,7 +715,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                     // Mute button
                     Positioned(
                       top: 12,
-                      right: 12,
+                      right: 52,
                       child: GestureDetector(
                         onTap: _toggleMute,
                         child: Container(
@@ -565,6 +726,26 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                           ),
                           child: Icon(
                             _isMuted ? Icons.volume_off : Icons.volume_up,
+                            size: 20,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Fullscreen button
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: GestureDetector(
+                        onTap: _toggleFullscreen,
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.fullscreen,
                             size: 20,
                             color: Colors.white,
                           ),
@@ -867,6 +1048,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
           ),
         ],
       ),
+    ),
     );
   }
 }
