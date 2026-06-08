@@ -5,7 +5,6 @@ import '../models/media.dart';
 import '../models/comment.dart';
 import '../models/playlist.dart';
 import '../services/murrtube_api.dart';
-import '../theme/app_theme.dart';
 import '../widgets/video_card.dart';
 
 class VideoDetailPage extends StatefulWidget {
@@ -70,7 +69,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     if (!mounted) return;
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -193,14 +192,14 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(
           child: SizedBox(
             width: 32,
             height: 32,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: AppColors.primary,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
         ),
@@ -208,18 +207,18 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     }
     final medium = _medium;
     if (medium == null) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(
           child: Text(
             'Video not found',
-            style: TextStyle(color: AppColors.textMuted),
+            style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey),
           ),
         ),
       );
     }
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
@@ -251,13 +250,13 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                 imageUrl: medium.thumbnailUrl,
                                 fit: BoxFit.contain,
                                 placeholder: (_, __) => Container(
-                                  color: AppColors.surfaceHighlight,
+                                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                                 ),
                                 errorWidget: (_, __, ___) => Container(
-                                  color: AppColors.surfaceHighlight,
-                                  child: const Icon(
+                                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                  child: Icon(
                                     Icons.broken_image_outlined,
-                                    color: AppColors.textMuted,
+                                    color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
                                   ),
                                 ),
                               ),
@@ -307,7 +306,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                         .withValues(alpha: 0.6),
                                     borderRadius: BorderRadius.circular(50),
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.play_arrow_rounded,
                                     size: 40,
                                     color: Colors.white,
@@ -340,7 +339,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                   const SizedBox(width: 8),
                                   Text(
                                     _skipForward ? '+10s' : '-10s',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 20,
                                       fontWeight: FontWeight.w700,
@@ -430,7 +429,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                             widthFactor: currentFraction,
                                             child: Container(
                                               height: 4,
-                                              color: AppColors.primary,
+                                              color: Theme.of(context).colorScheme.primary,
                                             ),
                                           ),
                                           // Thumb / head
@@ -446,7 +445,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                                 shape: BoxShape.circle,
                                                 boxShadow: [
                                                   BoxShadow(
-                                                    color: AppColors.primary.withValues(alpha: 0.4),
+                                                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
                                                     blurRadius: 6,
                                                     spreadRadius: 1,
                                                   ),
@@ -461,8 +460,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                                 child: Container(
                                                   width: 6,
                                                   height: 6,
-                                                  decoration: const BoxDecoration(
-                                                    color: AppColors.primary,
+                                                  decoration: BoxDecoration(
+                                                    color: Theme.of(context).colorScheme.primary,
                                                     shape: BoxShape.circle,
                                                   ),
                                                 ),
@@ -491,7 +490,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                               )
                                             : _controller!.value.position,
                                       ),
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 11,
                                         fontWeight: FontWeight.w500,
@@ -499,7 +498,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                     ),
                                     Text(
                                       _formatDuration(_controller!.value.duration),
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         color: Colors.white70,
                                         fontSize: 11,
                                       ),
@@ -523,7 +522,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                             color: Colors.black.withValues(alpha: 0.5),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.arrow_back_ios_new,
                             size: 18,
                             color: Colors.white,
@@ -545,10 +544,10 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                     children: [
                       Text(
                         medium.title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.text,
+                          color: Theme.of(context).colorScheme.onSurface,
                           height: 1.3,
                         ),
                       ),
@@ -563,24 +562,24 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                     height: 36,
                                     fit: BoxFit.cover,
                                     placeholder: (_, __) => Container(
-                                      color: AppColors.surfaceHighlight,
+                                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
                                     ),
-                                    errorWidget: (_, __, ___) => const Icon(
+                                    errorWidget: (_, __, ___) => Icon(
                                       Icons.person,
-                                      color: AppColors.textMuted,
+                                      color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
                                     ),
                                   )
                                 : Container(
                                     width: 36,
                                     height: 36,
                                     decoration: BoxDecoration(
-                                      color: AppColors.surfaceHighlight,
+                                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
                                       borderRadius: BorderRadius.circular(18),
                                     ),
-                                    child: const Icon(
+                                    child: Icon(
                                       Icons.person,
                                       size: 18,
-                                      color: AppColors.textMuted,
+                                      color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
                                     ),
                                   ),
                           ),
@@ -591,17 +590,17 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                               children: [
                                 Text(
                                   medium.user.name,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.w600,
                                     fontSize: 14,
-                                    color: AppColors.text,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                                 Text(
                                   '@${medium.user.slug}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
-                                    color: AppColors.textMuted,
+                                    color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
                                   ),
                                 ),
                               ],
@@ -616,10 +615,10 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                           vertical: 10,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.surface,
+                          color: Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: AppColors.divider.withValues(alpha: 0.3),
+                            color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
                           ),
                         ),
                         child: Row(
@@ -633,7 +632,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                             Container(
                               width: 1,
                               height: 28,
-                              color: AppColors.divider.withValues(alpha: 0.3),
+                              color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
                             ),
                             GestureDetector(
                               onTap: _viewerCanLike ? _toggleLike : null,
@@ -643,13 +642,13 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                     : Icons.favorite_border_rounded,
                                 value: '$_likesCount',
                                 label: 'Likes',
-                                iconColor: _viewerLiked ? AppColors.primary : null,
+                                iconColor: _viewerLiked ? Theme.of(context).colorScheme.primary : null,
                               ),
                             ),
                             Container(
                               width: 1,
                               height: 28,
-                              color: AppColors.divider.withValues(alpha: 0.3),
+                              color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
                             ),
                             GestureDetector(
                               onTap: MurrtubeApi.hasCookies ? _showSaveBottomSheet : null,
@@ -662,7 +661,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                             Container(
                               width: 1,
                               height: 28,
-                              color: AppColors.divider.withValues(alpha: 0.3),
+                              color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
                             ),
                             _StatItem(
                               icon: Icons.chat_bubble_outline,
@@ -677,9 +676,9 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                         const SizedBox(height: 16),
                         Text(
                           medium.description!,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
-                            color: AppColors.textMuted,
+                            color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
                             height: 1.5,
                           ),
                         ),
@@ -696,18 +695,18 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                       vertical: 6,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: AppColors.surface,
+                                      color: Theme.of(context).colorScheme.surface,
                                       borderRadius: BorderRadius.circular(16),
                                       border: Border.all(
-                                        color: AppColors.divider
+                                        color: Theme.of(context).dividerColor
                                             .withValues(alpha: 0.3),
                                       ),
                                     ),
                                     child: Text(
                                       '#${tag.name}',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 12,
-                                        color: AppColors.textMuted,
+                                        color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -725,34 +724,34 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                     margin: const EdgeInsets.symmetric(horizontal: 20),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: AppColors.divider.withValues(alpha: 0.3),
+                        color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.chat_bubble_outline,
                           size: 18,
-                          color: AppColors.textMuted,
+                          color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
                         ),
                         const SizedBox(width: 10),
                         Text(
                           '${medium.commentsCount} Comments',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: AppColors.text,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         const Spacer(),
                         AnimatedRotation(
                           turns: _showComments ? 0.5 : 0,
                           duration: const Duration(milliseconds: 200),
-                          child: const Icon(
+                          child: Icon(
                             Icons.expand_more,
-                            color: AppColors.textMuted,
+                            color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
                           ),
                         ),
                       ],
@@ -773,14 +772,14 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                 // Watch more
                 if (_watchMore.isNotEmpty) ...[
                   const SizedBox(height: 24),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
                       'Watch More',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.text,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -837,23 +836,23 @@ class _StatItem extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 18, color: iconColor ?? AppColors.textMuted),
+        Icon(icon, size: 18, color: iconColor ?? Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey),
         const SizedBox(height: 4),
         if (value.isNotEmpty)
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: AppColors.text,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         if (label.isNotEmpty)
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
-              color: AppColors.textMuted,
+              color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
             ),
           ),
       ],
@@ -925,7 +924,7 @@ class _SaveSheetState extends State<_SaveSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.divider.withValues(alpha: 0.5),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -933,18 +932,18 @@ class _SaveSheetState extends State<_SaveSheet> {
             const SizedBox(height: 16),
             Text(
               'Save to playlist',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppColors.text,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 12),
             if (_loading)
-              const Center(
+              Center(
                 child: Padding(
-                  padding: EdgeInsets.all(20),
-                  child: CircularProgressIndicator(color: AppColors.primary),
+                  padding: const EdgeInsets.all(20),
+                  child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
                 ),
               )
             else if (_showCreateForm)
@@ -967,7 +966,7 @@ class _SaveSheetState extends State<_SaveSheet> {
             child: Text(
               'No playlists yet',
               style: TextStyle(
-                color: AppColors.textMuted.withValues(alpha: 0.7),
+                color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey.withValues(alpha: 0.7),
               ),
             ),
           )
@@ -981,17 +980,17 @@ class _SaveSheetState extends State<_SaveSheet> {
                 final p = _playlists[i];
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(
+                  leading: Icon(
                     Icons.playlist_play,
-                    color: AppColors.textMuted,
+                    color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
                   ),
                   title: Text(
                     p.name,
-                    style: const TextStyle(color: AppColors.text),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                   ),
                   subtitle: Text(
                     '${p.visibility} · ${p.itemsCount} items',
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                    style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey, fontSize: 12),
                   ),
                   onTap: () => widget.onSelect(p),
                 );
@@ -1003,7 +1002,7 @@ class _SaveSheetState extends State<_SaveSheet> {
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () => setState(() => _showCreateForm = true),
-            icon: const Icon(Icons.add, size: 18),
+            icon: Icon(Icons.add, size: 18),
             label: const Text('Create new playlist'),
           ),
         ),
@@ -1029,7 +1028,7 @@ class _SaveSheetState extends State<_SaveSheet> {
           'Visibility',
           style: TextStyle(
             fontSize: 13,
-            color: AppColors.textMuted.withValues(alpha: 0.8),
+            color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey.withValues(alpha: 0.8),
           ),
         ),
         const SizedBox(height: 4),
@@ -1103,17 +1102,17 @@ class _VisibilityChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primary.withValues(alpha: 0.2) : AppColors.surfaceHighlight,
+          color: selected ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2) : Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected ? AppColors.primary : AppColors.divider,
+            color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).dividerColor,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 12,
-            color: selected ? AppColors.primary : AppColors.textMuted,
+            color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
             fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
@@ -1133,10 +1132,10 @@ class _CommentTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.divider.withValues(alpha: 0.3),
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -1150,25 +1149,25 @@ class _CommentTile extends StatelessWidget {
                     height: 32,
                     fit: BoxFit.cover,
                     placeholder: (_, __) => Container(
-                      color: AppColors.surfaceHighlight,
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     ),
-                    errorWidget: (_, __, ___) => const Icon(
+                    errorWidget: (_, __, ___) => Icon(
                       Icons.person,
                       size: 16,
-                      color: AppColors.textMuted,
+                      color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
                     ),
                   )
                 : Container(
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceHighlight,
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.person,
                       size: 16,
-                      color: AppColors.textMuted,
+                      color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
                     ),
                   ),
           ),
@@ -1181,10 +1180,10 @@ class _CommentTile extends StatelessWidget {
                   children: [
                     Text(
                       comment.user.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
-                        color: AppColors.text,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     if (comment.isCreator)
@@ -1195,15 +1194,15 @@ class _CommentTile extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.15),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text(
+                        child: Text(
                           'CREATOR',
                           style: TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.primary,
+                            color: Theme.of(context).colorScheme.primary,
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -1213,9 +1212,9 @@ class _CommentTile extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   comment.body,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.textMuted,
+                    color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
                     height: 1.4,
                   ),
                 ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../services/murrtube_api.dart';
-import '../theme/app_theme.dart';
 
 class AboutPage extends StatefulWidget {
   final String type;
@@ -67,15 +66,18 @@ class _AboutPageState extends State<AboutPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     return Scaffold(
       body: _loading
-          ? const Center(
+          ? Center(
               child: SizedBox(
                 width: 32,
                 height: 32,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: AppColors.primary,
+                  color: colorScheme.primary,
                 ),
               ),
             )
@@ -89,23 +91,23 @@ class _AboutPageState extends State<AboutPage> {
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.surface,
+                          color: colorScheme.surface,
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.arrow_back_ios_new,
                           size: 16,
-                          color: AppColors.text,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Text(
                       _title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.text,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                   ],
@@ -113,10 +115,10 @@ class _AboutPageState extends State<AboutPage> {
                 const SizedBox(height: 24),
                 Container(
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: AppColors.divider.withValues(alpha: 0.3),
+                      color: theme.dividerColor.withValues(alpha: 0.3),
                     ),
                   ),
                   padding: const EdgeInsets.all(20),
@@ -126,16 +128,16 @@ class _AboutPageState extends State<AboutPage> {
                       if (_props?['effective_date'] != null) ...[
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.calendar_today_outlined,
                               size: 16,
-                              color: AppColors.textMuted,
+                              color: mutedColor,
                             ),
                             const SizedBox(width: 8),
                             Text(
                               'Effective ${_props!['effective_date']}',
-                              style: const TextStyle(
-                                color: AppColors.textMuted,
+                              style: TextStyle(
+                                color: mutedColor,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -145,15 +147,15 @@ class _AboutPageState extends State<AboutPage> {
                         const SizedBox(height: 16),
                         Container(
                           height: 1,
-                          color: AppColors.divider.withValues(alpha: 0.3),
+                          color: theme.dividerColor.withValues(alpha: 0.3),
                         ),
                         const SizedBox(height: 16),
                       ],
-                      const Text(
+                      Text(
                         'Content loaded from Murrtube. For the full text, visit the website.',
                         style: TextStyle(
                           fontSize: 15,
-                          color: AppColors.text,
+                          color: colorScheme.onSurface,
                           height: 1.6,
                         ),
                       ),

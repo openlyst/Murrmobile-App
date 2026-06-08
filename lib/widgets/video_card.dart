@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/media.dart';
-import '../theme/app_theme.dart';
 
 class VideoCard extends StatelessWidget {
   final Media media;
@@ -15,6 +14,9 @@ class VideoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
@@ -22,10 +24,10 @@ class VideoCard extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: AppColors.divider.withValues(alpha: 0.3),
+              color: theme.dividerColor.withValues(alpha: 0.3),
               width: 1,
             ),
           ),
@@ -42,23 +44,23 @@ class VideoCard extends StatelessWidget {
                       imageUrl: media.thumbnailUrl,
                       fit: BoxFit.cover,
                       placeholder: (_, __) => Container(
-                        color: AppColors.surfaceHighlight,
-                        child: const Center(
+                        color: colorScheme.surfaceContainerHighest,
+                        child: Center(
                           child: SizedBox(
                             width: 24,
                             height: 24,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: AppColors.primary,
+                              color: colorScheme.primary,
                             ),
                           ),
                         ),
                       ),
                       errorWidget: (_, __, ___) => Container(
-                        color: AppColors.surfaceHighlight,
-                        child: const Icon(
+                        color: colorScheme.surfaceContainerHighest,
+                        child: Icon(
                           Icons.broken_image_outlined,
-                          color: AppColors.textMuted,
+                          color: mutedColor,
                         ),
                       ),
                     ),
@@ -74,12 +76,13 @@ class VideoCard extends StatelessWidget {
                           color: Colors.black.withValues(alpha: 0.75),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: Text(
-                          media.durationLabel,
-                          style: const TextStyle(
+                        child: const Text(
+                          'LIVE',
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ),
@@ -94,7 +97,7 @@ class VideoCard extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.error,
+                            color: colorScheme.error,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Row(
@@ -131,11 +134,11 @@ class VideoCard extends StatelessWidget {
                       media.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                         height: 1.3,
-                        color: AppColors.text,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -149,20 +152,20 @@ class VideoCard extends StatelessWidget {
                               height: 18,
                               fit: BoxFit.cover,
                               placeholder: (_, __) => Container(
-                                color: AppColors.surfaceHighlight,
+                                color: colorScheme.surfaceContainerHighest,
                               ),
-                              errorWidget: (_, __, ___) => const Icon(
+                              errorWidget: (_, __, ___) => Icon(
                                 Icons.person,
                                 size: 16,
-                                color: AppColors.textMuted,
+                                color: mutedColor,
                               ),
                             ),
                           )
                         else
-                          const Icon(
+                          Icon(
                             Icons.person,
                             size: 16,
-                            color: AppColors.textMuted,
+                            color: mutedColor,
                           ),
                         const SizedBox(width: 6),
                         Expanded(
@@ -170,8 +173,8 @@ class VideoCard extends StatelessWidget {
                             media.user.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: AppColors.textMuted,
+                            style: TextStyle(
+                              color: mutedColor,
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
@@ -182,32 +185,32 @@ class VideoCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.visibility_outlined,
                           size: 12,
-                          color: AppColors.textMuted,
+                          color: mutedColor,
                         ),
                         const SizedBox(width: 3),
                         Text(
                           _formatCount(media.viewsCount),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textMuted,
+                            color: mutedColor,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                         const SizedBox(width: 10),
-                        const Icon(
+                        Icon(
                           Icons.thumb_up_outlined,
                           size: 12,
-                          color: AppColors.textMuted,
+                          color: mutedColor,
                         ),
                         const SizedBox(width: 3),
                         Text(
                           _formatCount(media.likesCount),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textMuted,
+                            color: mutedColor,
                             fontWeight: FontWeight.w500,
                           ),
                         ),

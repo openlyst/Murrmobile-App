@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/announcement.dart';
-import '../theme/app_theme.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AnnouncementBanner extends StatelessWidget {
@@ -10,21 +9,24 @@ class AnnouncementBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.primary.withValues(alpha: 0.15),
-            AppColors.secondary.withValues(alpha: 0.08),
+            colorScheme.primary.withValues(alpha: 0.15),
+            colorScheme.secondary.withValues(alpha: 0.08),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.2),
+          color: colorScheme.primary.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -37,7 +39,7 @@ class AnnouncementBanner extends StatelessWidget {
                 width: 8,
                 height: 8,
                 decoration: BoxDecoration(
-                  color: AppColors.primary,
+                  color: colorScheme.primary,
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -45,10 +47,10 @@ class AnnouncementBanner extends StatelessWidget {
               Expanded(
                 child: Text(
                   announcement.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
-                    color: AppColors.text,
+                    color: colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -57,9 +59,9 @@ class AnnouncementBanner extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             announcement.body,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: AppColors.textMuted,
+              color: mutedColor,
               height: 1.45,
             ),
           ),
@@ -74,8 +76,8 @@ class AnnouncementBanner extends StatelessWidget {
               },
               child: Text(
                 announcement.ctaLabel!,
-                style: const TextStyle(
-                  color: AppColors.primary,
+                style: TextStyle(
+                  color: colorScheme.primary,
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
                 ),

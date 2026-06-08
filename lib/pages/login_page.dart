@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/murrtube_api.dart';
 import '../utils/cookie_loader.dart';
-import '../theme/app_theme.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -110,13 +109,16 @@ class _LoginPageState extends State<LoginPage> {
     required TextEditingController controller,
     bool required = false,
   }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: AppColors.divider.withValues(alpha: 0.3),
+          color: theme.dividerColor.withValues(alpha: 0.3),
         ),
       ),
       padding: const EdgeInsets.all(16),
@@ -131,15 +133,15 @@ class _LoginPageState extends State<LoginPage> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.12),
+                  color: colorScheme.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   cookieName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
+                    color: colorScheme.primary,
                     fontFamily: 'monospace',
                     fontFamilyFallback: ['monospace'],
                   ),
@@ -153,15 +155,15 @@ class _LoginPageState extends State<LoginPage> {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.error.withValues(alpha: 0.15),
+                    color: colorScheme.error.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: const Text(
+                  child: Text(
                     'REQUIRED',
                     style: TextStyle(
                       fontSize: 9,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.error,
+                      color: colorScheme.error,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -172,9 +174,9 @@ class _LoginPageState extends State<LoginPage> {
           const SizedBox(height: 8),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: AppColors.textMuted,
+              color: mutedColor,
             ),
           ),
           const SizedBox(height: 10),
@@ -183,17 +185,17 @@ class _LoginPageState extends State<LoginPage> {
               return TextField(
                 controller: controller,
                 onChanged: (_) => setLocalState(() {}),
-                style: const TextStyle(
-                  color: AppColors.text,
+                style: TextStyle(
+                  color: colorScheme.onSurface,
                   fontSize: 13,
                   fontFamily: 'monospace',
                   fontFamilyFallback: ['monospace'],
                 ),
                 decoration: InputDecoration(
                   hintText: 'Paste value here...',
-                  hintStyle: const TextStyle(color: AppColors.textMuted),
+                  hintStyle: TextStyle(color: mutedColor),
                   filled: true,
-                  fillColor: AppColors.bg,
+                  fillColor: colorScheme.background,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide.none,
@@ -204,10 +206,10 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   suffixIcon: controller.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.clear,
                             size: 16,
-                            color: AppColors.textMuted,
+                            color: mutedColor,
                           ),
                           onPressed: () {
                             controller.clear();
@@ -226,8 +228,11 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: colorScheme.background,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(24),
@@ -239,13 +244,13 @@ class _LoginPageState extends State<LoginPage> {
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: colorScheme.surface,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.close,
                       size: 18,
-                      color: AppColors.text,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -256,31 +261,31 @@ class _LoginPageState extends State<LoginPage> {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.15),
+                color: colorScheme.primary.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.login,
-                color: AppColors.primary,
+                color: colorScheme.primary,
                 size: 28,
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'Log in to Murrtube',
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
-                color: AppColors.text,
+                color: colorScheme.onSurface,
                 letterSpacing: -0.5,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Murrtube uses Telegram for authentication. Open the site in your browser, log in, then paste each cookie value into the fields below.',
               style: TextStyle(
                 fontSize: 15,
-                color: AppColors.textMuted,
+                color: mutedColor,
                 height: 1.5,
               ),
             ),
@@ -351,13 +356,13 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             const SizedBox(height: 16),
-            const Center(
+            Center(
               child: Text(
                 'Tip: In your browser\'s cookie manager, copy the "Value" for each cookie name above.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.textMuted,
+                  color: mutedColor,
                   height: 1.4,
                 ),
               ),

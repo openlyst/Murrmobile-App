@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../services/murrtube_api.dart';
-import '../theme/app_theme.dart';
 import '../pages/home_page.dart';
 import '../pages/search_page.dart';
 import '../pages/upload_page.dart';
@@ -110,13 +109,16 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
       );
     }
 
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     return Scaffold(
       body: _items[_selectedIndex].page,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colorScheme.surface,
           border: Border(
-            top: BorderSide(color: AppColors.divider.withValues(alpha: 0.5)),
+            top: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
           ),
         ),
         child: SafeArea(
@@ -143,7 +145,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                             ),
                             decoration: isSelected
                                 ? BoxDecoration(
-                                    color: AppColors.primary
+                                    color: colorScheme.primary
                                         .withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(20),
                                   )
@@ -151,8 +153,8 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                             child: Icon(
                               isSelected ? item.activeIcon : item.icon,
                               color: isSelected
-                                  ? AppColors.primary
-                                  : AppColors.textMuted,
+                                  ? colorScheme.primary
+                                  : mutedColor,
                               size: 24,
                             ),
                           ),
@@ -165,8 +167,8 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                                   ? FontWeight.w600
                                   : FontWeight.w400,
                               color: isSelected
-                                  ? AppColors.primary
-                                  : AppColors.textMuted,
+                                  ? colorScheme.primary
+                                  : mutedColor,
                             ),
                           ),
                         ],
@@ -196,12 +198,15 @@ class _DesktopLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     return Scaffold(
       body: Row(
         children: [
           Container(
             width: 240,
-            color: AppColors.surface,
+            color: colorScheme.surface,
             child: Column(
               children: [
                 const SizedBox(height: 24),
@@ -219,12 +224,12 @@ class _DesktopLayout extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Text(
+                      Text(
                         'Murrmobile',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.text,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                     ],
@@ -253,11 +258,11 @@ class _DesktopLayout extends StatelessWidget {
                               ),
                               decoration: isSelected
                                   ? BoxDecoration(
-                                      color: AppColors.primary
+                                      color: colorScheme.primary
                                           .withValues(alpha: 0.12),
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
-                                        color: AppColors.primary
+                                        color: colorScheme.primary
                                             .withValues(alpha: 0.2),
                                         width: 1,
                                       ),
@@ -270,8 +275,8 @@ class _DesktopLayout extends StatelessWidget {
                                         ? item.activeIcon
                                         : item.icon,
                                     color: isSelected
-                                        ? AppColors.primary
-                                        : AppColors.textMuted,
+                                        ? colorScheme.primary
+                                        : mutedColor,
                                     size: 22,
                                   ),
                                   const SizedBox(width: 14),
@@ -283,8 +288,8 @@ class _DesktopLayout extends StatelessWidget {
                                           ? FontWeight.w600
                                           : FontWeight.w500,
                                       color: isSelected
-                                          ? AppColors.primary
-                                          : AppColors.textMuted,
+                                          ? colorScheme.primary
+                                          : mutedColor,
                                     ),
                                   ),
                                   if (isSelected) ...[
@@ -293,7 +298,7 @@ class _DesktopLayout extends StatelessWidget {
                                       width: 6,
                                       height: 6,
                                       decoration: BoxDecoration(
-                                        color: AppColors.primary,
+                                        color: colorScheme.primary,
                                         borderRadius: BorderRadius.circular(3),
                                       ),
                                     ),
@@ -311,7 +316,7 @@ class _DesktopLayout extends StatelessWidget {
               ],
             ),
           ),
-          Container(width: 1, color: AppColors.divider),
+          Container(width: 1, color: theme.dividerColor),
           Expanded(
             child: items[selectedIndex].page,
           ),

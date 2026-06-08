@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../services/murrtube_api.dart';
 import '../utils/cookie_loader.dart';
-import '../theme/app_theme.dart';
 
 class CookieSetupPage extends StatefulWidget {
   const CookieSetupPage({super.key});
@@ -57,8 +56,10 @@ class _CookieSetupPageState extends State<CookieSetupPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: colorScheme.background,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(24),
@@ -70,13 +71,13 @@ class _CookieSetupPageState extends State<CookieSetupPage> {
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: colorScheme.surface,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.arrow_back_ios_new,
                       size: 16,
-                      color: AppColors.text,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -87,70 +88,70 @@ class _CookieSetupPageState extends State<CookieSetupPage> {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.15),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.play_arrow_rounded,
-                color: AppColors.primary,
+                color: Theme.of(context).colorScheme.primary,
                 size: 32,
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'Welcome to Murrmobile',
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
-                color: AppColors.text,
+                color: Theme.of(context).colorScheme.onSurface,
                 letterSpacing: -0.5,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Paste your browser cookies to log in, or continue as a guest to browse.',
               style: TextStyle(
                 fontSize: 15,
-                color: AppColors.textMuted,
+                color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
                 height: 1.5,
               ),
             ),
             const SizedBox(height: 32),
             Container(
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: AppColors.divider.withValues(alpha: 0.3),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
                 ),
               ),
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Cookie String',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textMuted,
+                      color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
                       letterSpacing: 0.5,
                     ),
                   ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _controller,
-                    style: const TextStyle(
-                      color: AppColors.text,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 13,
                     ),
                     decoration: InputDecoration(
                       hintText:
                           '_murrtube_v3_session=...; age_check=...',
                       hintStyle:
-                          const TextStyle(color: AppColors.textMuted),
+                          TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey),
                       filled: true,
-                      fillColor: AppColors.bg,
+                      fillColor: Theme.of(context).colorScheme.background,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,

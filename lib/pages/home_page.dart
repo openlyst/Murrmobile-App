@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/media.dart';
 import '../models/announcement.dart';
 import '../services/murrtube_api.dart';
-import '../theme/app_theme.dart';
 import '../widgets/video_card.dart';
 import '../widgets/announcement_banner.dart';
 import 'video_detail_page.dart';
@@ -140,24 +139,24 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             if (_loading && _media.isEmpty)
-              const SliverFillRemaining(
+              SliverFillRemaining(
                 child: Center(
                   child: SizedBox(
                     width: 32,
                     height: 32,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: AppColors.primary,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ),
               )
             else if (!_loading && _media.isEmpty)
-              const SliverFillRemaining(
+              SliverFillRemaining(
                 child: Center(
                   child: Text(
                     'No videos found',
-                    style: TextStyle(color: AppColors.textMuted),
+                    style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey),
                   ),
                 ),
               )
@@ -176,13 +175,13 @@ class _HomePageState extends State<HomePage> {
                       if (index >= _media.length) {
                         if (_hasMore) {
                           WidgetsBinding.instance.addPostFrameCallback((_) => _loadMore());
-                          return const Center(
+                          return Center(
                             child: SizedBox(
                               width: 24,
                               height: 24,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: AppColors.primary,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                             ),
                           );
@@ -227,25 +226,28 @@ class _PillTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
         decoration: BoxDecoration(
-          color: active ? AppColors.primary : AppColors.surfaceHighlight,
+          color: active ? colorScheme.primary : colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
           border: active
               ? null
               : Border.all(
-                  color: AppColors.divider.withValues(alpha: 0.3),
+                  color: theme.dividerColor.withValues(alpha: 0.3),
                   width: 1,
                 ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: active ? Colors.white : AppColors.textMuted,
+            color: active ? Colors.white : mutedColor,
             fontSize: 13,
             fontWeight: active ? FontWeight.w700 : FontWeight.w500,
           ),

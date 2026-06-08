@@ -4,7 +4,6 @@ import '../models/media.dart';
 import '../models/user.dart';
 import '../models/tag.dart';
 import '../services/murrtube_api.dart';
-import '../theme/app_theme.dart';
 import '../widgets/video_card.dart';
 import 'video_detail_page.dart';
 
@@ -54,6 +53,9 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     final size = MediaQuery.of(context).size;
     final cols = _crossAxisCount(size.width);
 
@@ -68,27 +70,27 @@ class _SearchPageState extends State<SearchPage> {
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
+                        color: colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: AppColors.divider.withValues(alpha: 0.3),
+                          color: theme.dividerColor.withValues(alpha: 0.3),
                         ),
                       ),
                       child: TextField(
                         controller: _controller,
-                        style: const TextStyle(color: AppColors.text),
+                        style: TextStyle(color: colorScheme.onSurface),
                         decoration: InputDecoration(
                           hintText: 'Search videos, users, tags...',
-                          hintStyle: const TextStyle(color: AppColors.textMuted),
-                          prefixIcon: const Icon(
+                          hintStyle: TextStyle(color: mutedColor),
+                          prefixIcon: Icon(
                             Icons.search,
-                            color: AppColors.textMuted,
+                            color: mutedColor,
                           ),
                           suffixIcon: _controller.text.isNotEmpty
                               ? IconButton(
-                                  icon: const Icon(
+                                  icon: Icon(
                                     Icons.clear,
-                                    color: AppColors.textMuted,
+                                    color: mutedColor,
                                     size: 18,
                                   ),
                                   onPressed: () {
@@ -118,7 +120,7 @@ class _SearchPageState extends State<SearchPage> {
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        color: colorScheme.primary,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
@@ -133,20 +135,20 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ),
           if (_loading)
-            const SliverFillRemaining(
+            SliverFillRemaining(
               child: Center(
                 child: SizedBox(
                   width: 32,
                   height: 32,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: AppColors.primary,
+                    color: colorScheme.primary,
                   ),
                 ),
               ),
             )
           else if (_lastQuery == null)
-            const SliverFillRemaining(
+            SliverFillRemaining(
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -154,13 +156,13 @@ class _SearchPageState extends State<SearchPage> {
                     Icon(
                       Icons.search,
                       size: 48,
-                      color: AppColors.textMuted,
+                      color: mutedColor,
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Text(
                       'Type to search',
                       style: TextStyle(
-                        color: AppColors.textMuted,
+                        color: mutedColor,
                         fontSize: 15,
                       ),
                     ),
@@ -236,11 +238,11 @@ class _SearchPageState extends State<SearchPage> {
                 _users.isEmpty &&
                 _tagMatches.isEmpty &&
                 _lastQuery != null)
-              const SliverFillRemaining(
+              SliverFillRemaining(
                 child: Center(
                   child: Text(
                     'No results found',
-                    style: TextStyle(color: AppColors.textMuted),
+                    style: TextStyle(color: mutedColor),
                   ),
                 ),
               ),
@@ -262,10 +264,10 @@ class _SectionHeader extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
         child: Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: AppColors.text,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ),
@@ -281,40 +283,43 @@ class _TagChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: AppColors.divider.withValues(alpha: 0.3),
+            color: theme.dividerColor.withValues(alpha: 0.3),
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.local_offer_outlined,
               size: 14,
-              color: AppColors.primary,
+              color: colorScheme.primary,
             ),
             const SizedBox(width: 6),
             Text(
               tag.name,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: AppColors.text,
+                color: colorScheme.onSurface,
               ),
             ),
             const SizedBox(width: 6),
             Text(
               '${tag.count}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: AppColors.textMuted,
+                color: mutedColor,
               ),
             ),
           ],
@@ -331,14 +336,17 @@ class _UserTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.divider.withValues(alpha: 0.3),
+          color: theme.dividerColor.withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -351,23 +359,23 @@ class _UserTile extends StatelessWidget {
                     height: 40,
                     fit: BoxFit.cover,
                     placeholder: (_, __) => Container(
-                      color: AppColors.surfaceHighlight,
+                      color: colorScheme.surfaceContainerHighest,
                     ),
-                    errorWidget: (_, __, ___) => const Icon(
+                    errorWidget: (_, __, ___) => Icon(
                       Icons.person,
-                      color: AppColors.textMuted,
+                      color: mutedColor,
                     ),
                   )
                 : Container(
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceHighlight,
+                      color: colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.person,
-                      color: AppColors.textMuted,
+                      color: mutedColor,
                     ),
                   ),
           ),
@@ -378,26 +386,26 @@ class _UserTile extends StatelessWidget {
               children: [
                 Text(
                   user.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
-                    color: AppColors.text,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 if (user.slug.isNotEmpty)
                   Text(
                     '@${user.slug}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textMuted,
+                      color: mutedColor,
                     ),
                   ),
               ],
             ),
           ),
-          const Icon(
+          Icon(
             Icons.chevron_right,
-            color: AppColors.textMuted,
+            color: mutedColor,
             size: 20,
           ),
         ],

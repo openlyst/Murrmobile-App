@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/notification.dart';
 import '../services/murrtube_api.dart';
-import '../theme/app_theme.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
@@ -35,34 +34,37 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     return Scaffold(
       body: _loading
-          ? const Center(
+          ? Center(
               child: SizedBox(
                 width: 32,
                 height: 32,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: AppColors.primary,
+                  color: colorScheme.primary,
                 ),
               ),
             )
           : RefreshIndicator(
               onRefresh: _load,
               child: _items.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
                             Icons.notifications_none,
                             size: 48,
-                            color: AppColors.textMuted,
+                            color: mutedColor,
                           ),
-                          SizedBox(height: 12),
+                          const SizedBox(height: 12),
                           Text(
                             'No notifications',
-                            style: TextStyle(color: AppColors.textMuted),
+                            style: TextStyle(color: mutedColor),
                           ),
                         ],
                       ),
@@ -75,12 +77,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
+                                Text(
                                   'Activity',
                                   style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.w700,
-                                    color: AppColors.text,
+                                    color: colorScheme.onSurface,
                                   ),
                                 ),
                                 if (_items.any((i) => !i.read))
@@ -92,15 +94,15 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                         vertical: 6,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: AppColors.surfaceHighlight,
+                                        color: colorScheme.surfaceContainerHighest,
                                         borderRadius: BorderRadius.circular(20),
                                       ),
-                                      child: const Text(
+                                      child: Text(
                                         'Mark all read',
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w600,
-                                          color: AppColors.primary,
+                                          color: colorScheme.primary,
                                         ),
                                       ),
                                     ),
@@ -143,13 +145,16 @@ class _NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: AppColors.divider.withValues(alpha: 0.3),
+          color: theme.dividerColor.withValues(alpha: 0.3),
         ),
       ),
       child: Material(
@@ -168,15 +173,15 @@ class _NotificationCard extends StatelessWidget {
                   height: 40,
                   decoration: BoxDecoration(
                     color: item.read
-                        ? AppColors.surfaceHighlight
-                        : AppColors.primary.withValues(alpha: 0.12),
+                        ? colorScheme.surfaceContainerHighest
+                        : colorScheme.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     item.read
                         ? Icons.notifications_none_outlined
                         : Icons.notifications_rounded,
-                    color: item.read ? AppColors.textMuted : AppColors.primary,
+                    color: item.read ? mutedColor : colorScheme.primary,
                     size: 20,
                   ),
                 ),
@@ -192,24 +197,24 @@ class _NotificationCard extends StatelessWidget {
                               ? FontWeight.w500
                               : FontWeight.w700,
                           fontSize: 14,
-                          color: AppColors.text,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         item.body,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
-                          color: AppColors.textMuted,
+                          color: mutedColor,
                           height: 1.4,
                         ),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         _timeAgo(item.createdAt),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.textMuted,
+                          color: mutedColor,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -222,7 +227,7 @@ class _NotificationCard extends StatelessWidget {
                     height: 8,
                     margin: const EdgeInsets.only(top: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      color: colorScheme.primary,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),

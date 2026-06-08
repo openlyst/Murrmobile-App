@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../services/murrtube_api.dart';
-import '../theme/app_theme.dart';
 
 class UploadPage extends StatefulWidget {
   const UploadPage({super.key});
@@ -37,6 +36,9 @@ class _UploadPageState extends State<UploadPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     final rawVisibilities = _props?['visibilities'] as List<dynamic>? ?? [];
     final visibilities = rawVisibilities.map((v) {
       if (v is String) return {'value': v, 'label': v[0].toUpperCase() + v.substring(1)};
@@ -52,25 +54,25 @@ class _UploadPageState extends State<UploadPage> {
 
     return Scaffold(
       body: _loading
-          ? const Center(
+          ? Center(
               child: SizedBox(
                 width: 32,
                 height: 32,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: AppColors.primary,
+                  color: colorScheme.primary,
                 ),
               ),
             )
           : ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                const Text(
+                Text(
                   'Upload',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.text,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -82,13 +84,12 @@ class _UploadPageState extends State<UploadPage> {
                       const SizedBox(height: 8),
                       TextField(
                         controller: _titleController,
-                        style: const TextStyle(color: AppColors.text),
+                        style: TextStyle(color: colorScheme.onSurface),
                         decoration: InputDecoration(
                           hintText: 'Enter video title...',
-                          hintStyle:
-                              const TextStyle(color: AppColors.textMuted),
+                          hintStyle: TextStyle(color: mutedColor),
                           filled: true,
-                          fillColor: AppColors.bg,
+                          fillColor: colorScheme.background,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -97,8 +98,7 @@ class _UploadPageState extends State<UploadPage> {
                             horizontal: 16,
                             vertical: 14,
                           ),
-                          counterStyle:
-                              const TextStyle(color: AppColors.textMuted),
+                          counterStyle: TextStyle(color: mutedColor),
                         ),
                         maxLength: _props?['max_title_length'] ?? 100,
                       ),
@@ -107,13 +107,12 @@ class _UploadPageState extends State<UploadPage> {
                       const SizedBox(height: 8),
                       TextField(
                         controller: _descController,
-                        style: const TextStyle(color: AppColors.text),
+                        style: TextStyle(color: colorScheme.onSurface),
                         decoration: InputDecoration(
                           hintText: 'Describe your video...',
-                          hintStyle:
-                              const TextStyle(color: AppColors.textMuted),
+                          hintStyle: TextStyle(color: mutedColor),
                           filled: true,
-                          fillColor: AppColors.bg,
+                          fillColor: colorScheme.background,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -146,7 +145,7 @@ class _UploadPageState extends State<UploadPage> {
                                 ? BoxDecoration(
                                     border: Border(
                                       bottom: BorderSide(
-                                        color: AppColors.divider
+                                        color: theme.dividerColor
                                             .withValues(alpha: 0.3),
                                       ),
                                     ),
@@ -161,17 +160,17 @@ class _UploadPageState extends State<UploadPage> {
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       color: isSelected
-                                          ? AppColors.primary
-                                          : AppColors.divider,
+                                          ? colorScheme.primary
+                                          : theme.dividerColor,
                                       width: 2,
                                     ),
                                   ),
                                   child: isSelected
                                       ? Container(
                                           margin: const EdgeInsets.all(4),
-                                          decoration: const BoxDecoration(
+                                          decoration: BoxDecoration(
                                             shape: BoxShape.circle,
-                                            color: AppColors.primary,
+                                            color: colorScheme.primary,
                                           ),
                                         )
                                       : null,
@@ -179,9 +178,9 @@ class _UploadPageState extends State<UploadPage> {
                                 const SizedBox(width: 14),
                                 Text(
                                   v['label'] ?? value,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 14,
-                                    color: AppColors.text,
+                                    color: colorScheme.onSurface,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -207,18 +206,17 @@ class _UploadPageState extends State<UploadPage> {
                                 vertical: 8,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.surface,
+                                color: colorScheme.surface,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color:
-                                      AppColors.divider.withValues(alpha: 0.3),
+                                  color: theme.dividerColor.withValues(alpha: 0.3),
                                 ),
                               ),
                               child: Text(
                                 t['name'] ?? '',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 13,
-                                  color: AppColors.text,
+                                  color: colorScheme.onSurface,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -249,12 +247,13 @@ class _UploadPageState extends State<UploadPage> {
   }
 
   Widget _buildCard({required Widget child}) {
+    final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.divider.withValues(alpha: 0.3),
+          color: theme.dividerColor.withValues(alpha: 0.3),
         ),
       ),
       padding: const EdgeInsets.all(16),
@@ -265,10 +264,10 @@ class _UploadPageState extends State<UploadPage> {
   Widget _buildLabel(String text) {
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w600,
-        color: AppColors.textMuted,
+        color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
         letterSpacing: 0.5,
       ),
     );

@@ -6,7 +6,6 @@ import '../services/murrtube_api.dart';
 import '../utils/cookie_loader.dart';
 import '../utils/app_preferences.dart';
 import '../providers/theme_provider.dart';
-import '../theme/app_theme.dart';
 import 'login_page.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -92,25 +91,25 @@ class _SettingsPageState extends State<SettingsPage> {
 
     return Scaffold(
       body: _loading
-          ? const Center(
+          ? Center(
               child: SizedBox(
                 width: 32,
                 height: 32,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: AppColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
             )
           : ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                const Text(
+                Text(
                   'Settings',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.text,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -128,23 +127,23 @@ class _SettingsPageState extends State<SettingsPage> {
                                       height: 48,
                                       fit: BoxFit.cover,
                                       placeholder: (_, __) => Container(
-                                        color: AppColors.surfaceHighlight,
+                                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
                                       ),
-                                      errorWidget: (_, __, ___) => const Icon(
+                                      errorWidget: (_, __, ___) => Icon(
                                         Icons.person,
-                                        color: AppColors.textMuted,
+                                        color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
                                       ),
                                     )
                                   : Container(
                                       width: 48,
                                       height: 48,
                                       decoration: BoxDecoration(
-                                        color: AppColors.surfaceHighlight,
+                                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
                                         borderRadius: BorderRadius.circular(24),
                                       ),
-                                      child: const Icon(
+                                      child: Icon(
                                         Icons.person,
-                                        color: AppColors.textMuted,
+                                        color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
                                       ),
                                     ),
                             ),
@@ -155,18 +154,18 @@ class _SettingsPageState extends State<SettingsPage> {
                                 children: [
                                   Text(
                                     user['name'] ?? 'User',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 15,
-                                      color: AppColors.text,
+                                      color: Theme.of(context).colorScheme.onSurface,
                                     ),
                                   ),
                                   if (user['slug'] != null)
                                     Text(
                                       '@${user['slug']}',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 13,
-                                        color: AppColors.textMuted,
+                                        color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
                                       ),
                                     ),
                                 ],
@@ -178,7 +177,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         _buildActionTile(
                           icon: Icons.logout,
                           label: 'Log Out',
-                          iconColor: AppColors.error,
+                          iconColor: Theme.of(context).colorScheme.error,
                           onTap: () async {
                             MurrtubeApi.clearCookies();
                             await CookieLoader.clear();
@@ -196,7 +195,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       icon: Icons.login,
                       label: 'Log In',
                       subtitle: 'For uploads, comments, and notifications',
-                      iconColor: AppColors.primary,
+                      iconColor: Theme.of(context).colorScheme.primary,
                       onTap: () async {
                         final result = await Navigator.push<bool>(
                           context,
@@ -298,12 +297,13 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _buildCard({required Widget child}) {
+    final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.divider.withValues(alpha: 0.3),
+          color: theme.dividerColor.withValues(alpha: 0.3),
         ),
       ),
       padding: const EdgeInsets.all(16),
@@ -319,6 +319,8 @@ class _SettingsPageState extends State<SettingsPage> {
     VoidCallback? onTap,
     bool showDivider = false,
   }) {
+    final theme = Theme.of(context);
+    final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
@@ -328,14 +330,14 @@ class _SettingsPageState extends State<SettingsPage> {
             ? BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: AppColors.divider.withValues(alpha: 0.3),
+                    color: theme.dividerColor.withValues(alpha: 0.3),
                   ),
                 ),
               )
             : null,
         child: Row(
           children: [
-            Icon(icon, size: 20, color: iconColor ?? AppColors.textMuted),
+            Icon(icon, size: 20, color: iconColor ?? mutedColor),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -343,27 +345,27 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   Text(
                     label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.text,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                   if (subtitle != null)
                     Text(
                       subtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.textMuted,
+                        color: mutedColor,
                       ),
                     ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.chevron_right,
               size: 18,
-              color: AppColors.textMuted,
+              color: mutedColor,
             ),
           ],
         ),
@@ -377,9 +379,12 @@ class _SettingsPageState extends State<SettingsPage> {
     required String selected,
     required ValueChanged<String> onSelect,
   }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -395,7 +400,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.divider.withValues(alpha: 0.5),
+                    color: theme.dividerColor.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -403,10 +408,10 @@ class _SettingsPageState extends State<SettingsPage> {
               const SizedBox(height: 16),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.text,
+                  color: colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 12),
@@ -424,12 +429,12 @@ class _SettingsPageState extends State<SettingsPage> {
                         isActive
                             ? Icons.radio_button_checked
                             : Icons.radio_button_unchecked,
-                        color: isActive ? AppColors.primary : AppColors.textMuted,
+                        color: isActive ? colorScheme.primary : mutedColor,
                       ),
                       title: Text(
                         opt.label,
                         style: TextStyle(
-                          color: isActive ? AppColors.text : AppColors.textMuted,
+                          color: isActive ? colorScheme.onSurface : mutedColor,
                           fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
                         ),
                       ),
@@ -453,10 +458,10 @@ class _SettingsPageState extends State<SettingsPage> {
       padding: const EdgeInsets.only(left: 4, bottom: 10),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: AppColors.textMuted,
+          color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
           letterSpacing: 0.5,
         ),
       ),
