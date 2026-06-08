@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F0F11"/>
+      <stop offset="100%" stop-color="#1A1A1E"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6B35"/>
+      <stop offset="100%" stop-color="#FF8F5A"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect x="0" y="0" width="512" height="512" rx="128" fill="url(#bg)"/>
+
+  <!-- Paw pad (main circle) -->
+  <circle cx="256" cy="280" r="72" fill="url(#accent)"/>
+
+  <!-- Play triangle inside paw pad -->
+  <polygon points="232,252 232,308 290,280" fill="#0F0F11"/>
+
+  <!-- Toe beans (top) -->
+  <ellipse cx="196" cy="176" rx="28" ry="34" fill="url(#accent)" transform="rotate(-20 196 176)"/>
+  <ellipse cx="256" cy="148" rx="30" ry="36" fill="url(#accent)"/>
+  <ellipse cx="316" cy="176" rx="28" ry="34" fill="url(#accent)" transform="rotate(20 316 176)"/>
+</svg>
