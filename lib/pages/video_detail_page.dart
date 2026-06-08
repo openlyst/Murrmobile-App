@@ -146,11 +146,16 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
 
   void _initPlayer(String url) {
     _controller = VideoPlayerController.networkUrl(Uri.parse(url))
+      ..setVolume(1.0)
+      ..setLooping(true)
       ..addListener(() {
         if (mounted) setState(() {});
       })
       ..initialize().then((_) {
-        if (mounted) setState(() {});
+        if (mounted) {
+          _controller!.play();
+          setState(() {});
+        }
       });
   }
 
