@@ -274,7 +274,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                         left: 0,
                         right: 0,
                         child: Container(
-                          padding: const EdgeInsets.fromLTRB(12, 16, 12, 10),
+                          padding: const EdgeInsets.fromLTRB(0, 16, 0, 10),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               begin: Alignment.topCenter,
@@ -305,6 +305,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                           _controller!.value.duration.inMilliseconds
                                       : 0.0;
 
+                                  final currentFraction = _isDraggingTimeline ? _dragProgress : progress;
+
                                   return GestureDetector(
                                     behavior: HitTestBehavior.translucent,
                                     onTapDown: (details) {
@@ -326,55 +328,75 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                       setState(() => _isDraggingTimeline = false);
                                     },
                                     child: Container(
-                                      height: 24,
+                                      height: 32,
                                       alignment: Alignment.center,
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(2),
-                                        child: Container(
-                                          height: 3,
-                                          color: Colors.white.withValues(alpha: 0.2),
-                                          child: FractionallySizedBox(
-                                            alignment: Alignment.centerLeft,
-                                            widthFactor: _isDraggingTimeline
-                                                ? _dragProgress
-                                                : progress,
-                                            child: Container(color: AppColors.primary),
+                                      child: Stack(
+                                        alignment: Alignment.centerLeft,
+                                        children: [
+                                          // Background track
+                                          Container(
+                                            height: 4,
+                                            color: Colors.white.withValues(alpha: 0.25),
                                           ),
-                                        ),
+                                          // Filled progress
+                                          FractionallySizedBox(
+                                            alignment: Alignment.centerLeft,
+                                            widthFactor: currentFraction,
+                                            child: Container(
+                                              height: 4,
+                                              color: AppColors.primary,
+                                            ),
+                                          ),
+                                          // Thumb / head
+                                          Positioned(
+                                            left: (currentFraction * barWidth - 6).clamp(0.0, barWidth - 12),
+                                            child: Container(
+                                              width: 12,
+                                              height: 12,
+                                              decoration: BoxDecoration(
+                                                color: AppColors.primary,
+                                                shape: BoxShape.circle,
+                                                border: Border.all(color: Colors.white, width: 2),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   );
                                 },
                               ),
-                              const SizedBox(height: 4),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    _formatDuration(
-                                      _isDraggingTimeline
-                                          ? Duration(
-                                              milliseconds: (_dragProgress *
-                                                      _controller!.value.duration.inMilliseconds)
-                                                  .round(),
-                                            )
-                                          : _controller!.value.position,
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _formatDuration(
+                                        _isDraggingTimeline
+                                            ? Duration(
+                                                milliseconds: (_dragProgress *
+                                                        _controller!.value.duration.inMilliseconds)
+                                                    .round(),
+                                              )
+                                            : _controller!.value.position,
+                                      ),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500,
+                                    Text(
+                                      _formatDuration(_controller!.value.duration),
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 11,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    _formatDuration(_controller!.value.duration),
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ],
                           ),
