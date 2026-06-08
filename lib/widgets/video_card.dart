@@ -64,64 +64,6 @@ class VideoCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Positioned(
-                      bottom: 10,
-                      right: 10,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.75),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text(
-                          'LIVE',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (media.isLive)
-                      Positioned(
-                        top: 10,
-                        left: 10,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colorScheme.error,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.circle,
-                                size: 8,
-                                color: Colors.white,
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                'LIVE',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),
