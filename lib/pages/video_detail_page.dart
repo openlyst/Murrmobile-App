@@ -1150,42 +1150,44 @@ class _SaveSheetState extends State<_SaveSheet> {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Save to playlist',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (_loading)
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-              )
-            else if (_showCreateForm)
-              _buildCreateForm()
-            else
-              _buildPlaylistList(),
-          ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Save to playlist',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (_loading)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
+                  ),
+                )
+              else if (_showCreateForm)
+                _buildCreateForm()
+              else
+                _buildPlaylistList(),
+            ],
+          ),
         ),
       ),
     );
