@@ -35,6 +35,13 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _load() async {
+    if (!MurrtubeApi.hasCookies) {
+      setState(() {
+        _props = null;
+        _loading = false;
+      });
+      return;
+    }
     try {
       final props = await MurrtubeApi.getSettings();
       setState(() {
@@ -43,7 +50,10 @@ class _SettingsPageState extends State<SettingsPage> {
       });
     } catch (e) {
       debugPrint('SettingsPage error: $e');
-      setState(() => _loading = false);
+      setState(() {
+        _props = null;
+        _loading = false;
+      });
     }
   }
 

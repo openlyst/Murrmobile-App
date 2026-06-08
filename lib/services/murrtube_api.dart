@@ -42,6 +42,7 @@ class MurrtubeApi {
 
   static void clearCookies() {
     _cookieString = null;
+    _inertiaVersion = null;
   }
 
   static String? _inertiaVersion;
@@ -151,7 +152,7 @@ class MurrtubeApi {
 
   static String? _extractInertiaVersion(String html) {
     debugPrint('Extracting Inertia version from HTML (${html.length} chars)');
-    // Look for Inertia version in script tags
+    // 1. Plain JSON in script tags
     final versionRegex = RegExp(r'"version":"([^"]+)"');
     final match = versionRegex.firstMatch(html);
     if (match != null) {
@@ -159,7 +160,7 @@ class MurrtubeApi {
       debugPrint('Found version via regex: $v');
       return v;
     }
-    // Alternative: look for data-page attribute (HTML-escaped JSON)
+    // 2. data-page attribute with HTML-escaped JSON
     final dataPageRegex = RegExp(r'data-page="([^"]+)"');
     final dataMatch = dataPageRegex.firstMatch(html);
     if (dataMatch != null) {
@@ -178,6 +179,14 @@ class MurrtubeApi {
       } catch (e) {
         debugPrint('data-page parse failed: $e');
       }
+    }
+    // 3. HTML-escaped &quot;version&quot; in raw HTML
+    final quotRegex = RegExp(r'&quot;version&quot;:&quot;([^&]+)&quot;');
+    final quotMatch = quotRegex.firstMatch(html);
+    if (quotMatch != null) {
+      final v = quotMatch.group(1);
+      debugPrint('Found version via &quot; regex: $v');
+      return v;
     }
     debugPrint('No version found in HTML');
     return null;
