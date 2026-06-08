@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'services/murrtube_api.dart';
 import 'utils/cookie_loader.dart';
-import 'theme/app_theme.dart';
+import 'providers/theme_provider.dart';
 import 'widgets/responsive_shell.dart';
 import 'pages/about_page.dart';
 
@@ -19,17 +20,24 @@ class MurrtubeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Murrmobile',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark,
-      home: const ResponsiveShell(),
-      routes: {
-        '/about/terms': (_) => const AboutPage(type: 'terms'),
-        '/about/privacy': (_) => const AboutPage(type: 'privacy'),
-        '/about/cookies': (_) => const AboutPage(type: 'cookies'),
-        '/about/whats-new': (_) => const AboutPage(type: 'whats-new'),
-      },
+    return ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, _) {
+          return MaterialApp(
+            title: 'Murrmobile',
+            debugShowCheckedModeBanner: false,
+            theme: themeProvider.themeData,
+            home: const ResponsiveShell(),
+            routes: {
+              '/about/terms': (_) => const AboutPage(type: 'terms'),
+              '/about/privacy': (_) => const AboutPage(type: 'privacy'),
+              '/about/cookies': (_) => const AboutPage(type: 'cookies'),
+              '/about/whats-new': (_) => const AboutPage(type: 'whats-new'),
+            },
+          );
+        },
+      ),
     );
   }
 }

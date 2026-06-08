@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
 import '../services/murrtube_api.dart';
 import '../utils/cookie_loader.dart';
 import '../utils/app_preferences.dart';
+import '../providers/theme_provider.dart';
 import '../theme/app_theme.dart';
 import 'login_page.dart';
 
@@ -18,7 +20,6 @@ class _SettingsPageState extends State<SettingsPage> {
   Map<String, dynamic>? _props;
   bool _loading = true;
   bool _wasLoggedIn = false;
-  String _theme = 'dark';
   String _videoQuality = 'auto';
 
   @override
@@ -30,13 +31,9 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _loadLocal() async {
-    final theme = await AppPreferences.getTheme();
     final quality = await AppPreferences.getVideoQuality();
     if (mounted) {
-      setState(() {
-        _theme = theme;
-        _videoQuality = quality;
-      });
+      setState(() => _videoQuality = quality);
     }
   }
 
@@ -219,24 +216,27 @@ class _SettingsPageState extends State<SettingsPage> {
                 ],
                 _SectionLabel('Appearance'),
                 _buildCard(
-                  child: _buildActionTile(
-                    icon: Icons.palette_outlined,
-                    label: 'Theme',
-                    subtitle: _theme[0].toUpperCase() + _theme.substring(1),
-                    onTap: () => _showSelectionSheet(
-                      title: 'Select Theme',
-                      options: themes.map((t) {
-                        final isMap = t is Map<String, dynamic>;
-                        final name = isMap ? (t['name'] ?? 'Theme') : t.toString();
-                        final value = isMap ? (t['value'] ?? name.toLowerCase()) : t.toString().toLowerCase();
-                        return _SelectionOption(label: name, value: value);
-                      }).toList(),
-                      selected: _theme,
-                      onSelect: (value) async {
-                        await AppPreferences.setTheme(value);
-                        setState(() => _theme = value);
-                      },
-                    ),
+                  child: Builder(
+                    builder: (context) {
+                      final themeProvider = context.watch<ThemeProvider>();
+                      final current = themeProvider.currentTheme;
+                      return _buildActionTile(
+                        icon: Icons.palette_outlined,
+                        label: 'Theme',
+                        subtitle: current[0].toUpperCase() + current.substring(1),
+                        onTap: () => _showSelectionSheet(
+                          title: 'Select Theme',
+                          options: themes.map((t) {
+                            final isMap = t is Map<String, dynamic>;
+                            final name = isMap ? (t['name'] ?? 'Theme') : t.toString();
+                            final value = isMap ? (t['value'] ?? name.toLowerCase()) : t.toString().toLowerCase();
+                            return _SelectionOption(label: name, value: value);
+                          }).toList(),
+                          selected: current,
+                          onSelect: (value) => themeProvider.setTheme(value),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: 20),
