@@ -22,12 +22,25 @@ class _HomePageState extends State<HomePage> {
   bool _hasMore = true;
   int _currentPage = 1;
   late String _currentTab;
+  bool _wasLoggedIn = false;
 
   @override
   void initState() {
     super.initState();
     _currentTab = widget.tab;
+    _wasLoggedIn = MurrtubeApi.hasCookies;
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final nowLoggedIn = MurrtubeApi.hasCookies;
+    if (nowLoggedIn != _wasLoggedIn) {
+      _wasLoggedIn = nowLoggedIn;
+      _currentPage = 1;
+      _load();
+    }
   }
 
   Future<void> _load() async {

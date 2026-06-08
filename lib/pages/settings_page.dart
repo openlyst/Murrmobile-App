@@ -15,11 +15,23 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   Map<String, dynamic>? _props;
   bool _loading = true;
+  bool _wasLoggedIn = false;
 
   @override
   void initState() {
     super.initState();
+    _wasLoggedIn = MurrtubeApi.hasCookies;
     _load();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final nowLoggedIn = MurrtubeApi.hasCookies;
+    if (nowLoggedIn != _wasLoggedIn) {
+      _wasLoggedIn = nowLoggedIn;
+      _load();
+    }
   }
 
   Future<void> _load() async {
