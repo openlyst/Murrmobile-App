@@ -28,15 +28,35 @@ class _ProfilePageState extends State<ProfilePage>
   int? _subscriptionsCount;
   String? _bio;
   String? _telegramUrl;
+  String? _gitlabUrl;
+  String? _twitterUrl;
+  String? _furaffinityUrl;
+  String? _patreonUrl;
+  String? _kofiUrl;
+  Map<String, int> _tabCounts = {};
   bool _loading = true;
   bool _hasMore = true;
   int _currentPage = 1;
+  String _currentTab = 'videos';
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        final tabs = ['videos', 'likes', 'playlists'];
+        final newTab = tabs[_tabController.index];
+        if (newTab != _currentTab) {
+          _currentTab = newTab;
+          _currentPage = 1;
+          _hasMore = true;
+          _media = [];
+          _load();
+        }
+      }
+    });
     _load();
   }
 
@@ -49,17 +69,29 @@ class _ProfilePageState extends State<ProfilePage>
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      final result = await MurrtubeApi.getUserProfile(widget.slug);
+      final result = await MurrtubeApi.getUserProfile(
+        widget.slug,
+        tab: _currentTab,
+      );
       setState(() {
         _user = result.user;
-        _media = result.media;
-        _playlists = result.playlists;
+        if (_currentTab == 'playlists') {
+          _playlists = result.playlists;
+        } else {
+          _media = result.media;
+        }
         _isSubscribed = result.isSubscribed;
         _isSelf = result.isSelf;
         _subscribersCount = result.subscribersCount;
         _subscriptionsCount = result.subscriptionsCount;
         _bio = result.bio;
         _telegramUrl = result.telegramUrl;
+        _gitlabUrl = result.gitlabUrl;
+        _twitterUrl = result.twitterUrl;
+        _furaffinityUrl = result.furaffinityUrl;
+        _patreonUrl = result.patreonUrl;
+        _kofiUrl = result.kofiUrl;
+        _tabCounts = result.tabCounts;
         _hasMore = result.pagination.next != null;
         _currentPage = result.pagination.page;
         _loading = false;
@@ -74,9 +106,17 @@ class _ProfilePageState extends State<ProfilePage>
     if (!_hasMore || _loading) return;
     try {
       final nextPage = _currentPage + 1;
-      final result = await MurrtubeApi.getUserProfile(widget.slug, page: nextPage);
+      final result = await MurrtubeApi.getUserProfile(
+        widget.slug,
+        tab: _currentTab,
+        page: nextPage,
+      );
       setState(() {
-        _media.addAll(result.media);
+        if (_currentTab == 'playlists') {
+          _playlists.addAll(result.playlists);
+        } else {
+          _media.addAll(result.media);
+        }
         _hasMore = result.pagination.next != null;
         _currentPage = result.pagination.page;
       });
@@ -120,6 +160,46 @@ class _ProfilePageState extends State<ProfilePage>
     if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
     if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
     return n.toString();
+  }
+
+  List<_SocialLinkData> get _socialLinks {
+    final links = <_SocialLinkData>[];
+    if (_gitlabUrl != null && _gitlabUrl!.isNotEmpty) {
+      links.add(_SocialLinkData(
+        icon: Icons.code,
+        label: 'GitLab',
+        url: _gitlabUrl!,
+      ));
+    }
+    if (_twitterUrl != null && _twitterUrl!.isNotEmpty) {
+      links.add(_SocialLinkData(
+        icon: Icons.flutter_dash,
+        label: 'X',
+        url: _twitterUrl!,
+      ));
+    }
+    if (_furaffinityUrl != null && _furaffinityUrl!.isNotEmpty) {
+      links.add(_SocialLinkData(
+        icon: Icons.pets,
+        label: 'FurAffinity',
+        url: _furaffinityUrl!,
+      ));
+    }
+    if (_patreonUrl != null && _patreonUrl!.isNotEmpty) {
+      links.add(_SocialLinkData(
+        icon: Icons.favorite,
+        label: 'Patreon',
+        url: _patreonUrl!,
+      ));
+    }
+    if (_kofiUrl != null && _kofiUrl!.isNotEmpty) {
+      links.add(_SocialLinkData(
+        icon: Icons.coffee,
+        label: 'Ko-fi',
+        url: _kofiUrl!,
+      ));
+    }
+    return links;
   }
 
   @override
@@ -177,9 +257,10 @@ class _ProfilePageState extends State<ProfilePage>
                   indicatorColor: colorScheme.primary,
                   labelColor: colorScheme.primary,
                   unselectedLabelColor: mutedColor,
-                  tabs: const [
-                    Tab(text: 'Videos'),
-                    Tab(text: 'Playlists'),
+                  tabs: [
+                    Tab(text: 'Videos ${_tabBadge('videos')}'),
+                    Tab(text: 'Likes ${_tabBadge('likes')}'),
+                    Tab(text: 'Playlists ${_tabBadge('playlists')}'),
                   ],
                 ),
               ),
@@ -190,11 +271,26 @@ class _ProfilePageState extends State<ProfilePage>
           controller: _tabController,
           children: [
             _buildVideosTab(context, colorScheme, mutedColor),
+            _buildLikesTab(context, colorScheme, mutedColor),
             _buildPlaylistsTab(context, colorScheme, mutedColor),
           ],
         ),
       ),
     );
+  }
+
+  String _tabBadge(String key) {
+    final count = _tabCounts[key];
+    if (count == null || count == 0) return '';
+    return _formatCount(count);
+  }
+
+  Widget _buildLikesTab(
+    BuildContext context,
+    ColorScheme colorScheme,
+    Color mutedColor,
+  ) {
+    return _buildVideosTab(context, colorScheme, mutedColor);
   }
 
   Widget _buildHeader(
@@ -292,6 +388,19 @@ class _ProfilePageState extends State<ProfilePage>
                   height: 1.4,
                 ),
               ),
+            ),
+          ],
+          if (_socialLinks.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 14,
+              children: _socialLinks.map((l) => _SocialLink(
+                icon: l.icon,
+                label: l.label,
+                url: l.url,
+                color: colorScheme.primary,
+              )).toList(),
             ),
           ],
           const SizedBox(height: 16),
@@ -570,5 +679,49 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
     return false;
+  }
+}
+
+class _SocialLinkData {
+  final IconData icon;
+  final String label;
+  final String url;
+
+  _SocialLinkData({required this.icon, required this.label, required this.url});
+}
+
+class _SocialLink extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String url;
+  final Color color;
+
+  const _SocialLink({
+    required this.icon,
+    required this.label,
+    required this.url,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {/* url_launcher */},
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

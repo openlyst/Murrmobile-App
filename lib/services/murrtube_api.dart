@@ -340,8 +340,16 @@ class MurrtubeApi {
     int? subscriptionsCount,
     String? bio,
     String? telegramUrl,
-  })> getUserProfile(String slug, {int page = 1}) async {
-    final path = page == 1 ? '/$slug' : '/$slug?page=$page';
+    Map<String, int> tabCounts,
+    String? gitlabUrl,
+    String? twitterUrl,
+    String? furaffinityUrl,
+    String? patreonUrl,
+    String? kofiUrl,
+  })> getUserProfile(String slug, {int page = 1, String tab = 'videos'}) async {
+    var path = '/$slug';
+    if (tab != 'videos') path += '?tab=$tab';
+    if (page != 1) path += path.contains('?') ? '&page=$page' : '?page=$page';
     final inertia = await _get(path);
     final props = inertia.props;
 
@@ -372,7 +380,13 @@ class MurrtubeApi {
     if (isSelf) {
       currentUserSlug = user.slug;
     }
-    final tabCounts = props['tab_counts'] as Map<String, dynamic>?;
+    final rawTabCounts = props['tab_counts'] as Map<String, dynamic>?;
+    final tabCounts = <String, int>{};
+    if (rawTabCounts != null) {
+      for (final e in rawTabCounts.entries) {
+        tabCounts[e.key] = e.value as int? ?? 0;
+      }
+    }
     return (
       user: user,
       media: mediaList,
@@ -381,10 +395,16 @@ class MurrtubeApi {
       isSubscribed: props['is_subscribed'] as bool? ?? false,
       isSelf: isSelf,
       currentUser: currentUser,
-      subscribersCount: tabCounts?['subscribers'] as int? ?? profileRaw['subscribers_count'] as int?,
-      subscriptionsCount: tabCounts?['subscriptions'] as int? ?? profileRaw['subscriptions_count'] as int?,
+      subscribersCount: tabCounts['subscribers'] ?? profileRaw['subscribers_count'] as int?,
+      subscriptionsCount: tabCounts['subscriptions'] ?? profileRaw['subscriptions_count'] as int?,
       bio: profileRaw['bio'] as String? ?? profileRaw['description'] as String?,
       telegramUrl: profileRaw['telegram_url'] as String?,
+      tabCounts: tabCounts,
+      gitlabUrl: profileRaw['gitlab'] as String?,
+      twitterUrl: profileRaw['twitter'] as String?,
+      furaffinityUrl: profileRaw['furaffinity'] as String?,
+      patreonUrl: profileRaw['patreon'] as String?,
+      kofiUrl: profileRaw['kofi'] as String?,
     );
   }
 
