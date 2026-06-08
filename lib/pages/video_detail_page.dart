@@ -31,8 +31,6 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   bool _viewerCanLike = false;
   bool _viewerLiked = false;
   int _likesCount = 0;
-  List<Playlist> _playlists = [];
-  bool _loadingPlaylists = false;
 
   @override
   void initState() {
@@ -69,14 +67,6 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
 
   Future<void> _showSaveBottomSheet() async {
     if (_medium == null) return;
-    setState(() => _loadingPlaylists = true);
-    try {
-      _playlists = await MurrtubeApi.getMyPlaylists();
-    } catch (e) {
-      debugPrint('Load playlists error: $e');
-    } finally {
-      setState(() => _loadingPlaylists = false);
-    }
     if (!mounted) return;
     showModalBottomSheet(
       context: context,
@@ -85,8 +75,6 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (ctx) => _SaveSheet(
-        playlists: _playlists,
-        loading: _loadingPlaylists,
         medium: _medium!,
         onCreate: (name, visibility) async {
           await MurrtubeApi.createPlaylist(
@@ -874,15 +862,11 @@ class _StatItem extends StatelessWidget {
 }
 
 class _SaveSheet extends StatefulWidget {
-  final List<Playlist> playlists;
-  final bool loading;
   final Media medium;
   final Future<void> Function(String name, String visibility) onCreate;
   final void Function(Playlist playlist) onSelect;
 
   const _SaveSheet({
-    required this.playlists,
-    required this.loading,
     required this.medium,
     required this.onCreate,
     required this.onSelect,
@@ -895,8 +879,31 @@ class _SaveSheet extends StatefulWidget {
 class _SaveSheetState extends State<_SaveSheet> {
   bool _creating = false;
   bool _showCreateForm = false;
+  bool _loading = true;
+  List<Playlist> _playlists = [];
   final _nameController = TextEditingController();
   String _visibility = 'public';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPlaylists();
+  }
+
+  Future<void> _loadPlaylists() async {
+    try {
+      final lists = await MurrtubeApi.getMyPlaylists();
+      if (mounted) {
+        setState(() {
+          _playlists = lists;
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Load playlists error: $e');
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -933,7 +940,7 @@ class _SaveSheetState extends State<_SaveSheet> {
               ),
             ),
             const SizedBox(height: 12),
-            if (widget.loading)
+            if (_loading)
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(20),
@@ -954,7 +961,7 @@ class _SaveSheetState extends State<_SaveSheet> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (widget.playlists.isEmpty)
+        if (_playlists.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 20),
             child: Text(
@@ -969,9 +976,9 @@ class _SaveSheetState extends State<_SaveSheet> {
             constraints: const BoxConstraints(maxHeight: 280),
             child: ListView.builder(
               shrinkWrap: true,
-              itemCount: widget.playlists.length,
+              itemCount: _playlists.length,
               itemBuilder: (ctx, i) {
-                final p = widget.playlists[i];
+                final p = _playlists[i];
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(
