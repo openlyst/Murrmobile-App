@@ -123,7 +123,7 @@ class VideoCard extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -133,20 +133,20 @@ class VideoCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
-                        fontSize: 13.5,
-                        height: 1.35,
+                        fontSize: 13,
+                        height: 1.3,
                         color: AppColors.text,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Row(
                       children: [
                         if (media.user.avatarUrl != null)
                           ClipOval(
                             child: CachedNetworkImage(
                               imageUrl: media.user.avatarUrl!,
-                              width: 20,
-                              height: 20,
+                              width: 18,
+                              height: 18,
                               fit: BoxFit.cover,
                               placeholder: (_, __) => Container(
                                 color: AppColors.surfaceHighlight,
@@ -179,12 +179,12 @@ class VideoCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     Row(
                       children: [
                         const Icon(
                           Icons.visibility_outlined,
-                          size: 13,
+                          size: 12,
                           color: AppColors.textMuted,
                         ),
                         const SizedBox(width: 3),
@@ -196,10 +196,10 @@ class VideoCard extends StatelessWidget {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 10),
                         const Icon(
                           Icons.thumb_up_outlined,
-                          size: 13,
+                          size: 12,
                           color: AppColors.textMuted,
                         ),
                         const SizedBox(width: 3),
