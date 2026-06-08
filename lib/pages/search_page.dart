@@ -36,11 +36,7 @@ class _SearchPageState extends State<SearchPage> {
         _tagMatches = result.tagMatches;
       });
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Search error: $e')),
-        );
-      }
+      debugPrint('SearchPage error: $e');
     } finally {
       setState(() => _loading = false);
     }

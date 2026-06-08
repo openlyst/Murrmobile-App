@@ -43,11 +43,7 @@ class _HomePageState extends State<HomePage> {
         _hasMore = result.pagination.next != null;
       });
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
+      debugPrint('HomePage load error: $e');
     } finally {
       setState(() => _loading = false);
     }

@@ -24,9 +24,12 @@ class _CookieSetupPageState extends State<CookieSetupPage> {
     try {
       final asset = await rootBundle.loadString('assets/cookies.txt');
       if (asset.trim().isNotEmpty && !asset.contains('Place your')) {
-        _controller.text = asset.trim();
+        final parsed = CookieLoader.parse(asset);
+        _controller.text = parsed ?? asset.trim();
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('_loadAssetCookie error: $e');
+    }
   }
 
   Future<void> _saveAndProceed() async {

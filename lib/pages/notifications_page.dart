@@ -27,11 +27,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         _loading = false;
       });
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
+      debugPrint('NotificationsPage error: $e');
       setState(() => _loading = false);
     }
   }

@@ -1,8 +1,22 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 class CookieLoader {
   static String? _cached;
+
+  static String? parse(String content) {
+    final pairs = <String>[];
+    for (final line in content.split('\n')) {
+      final trimmed = line.trim();
+      if (trimmed.isEmpty || trimmed.startsWith('#')) continue;
+      final parts = trimmed.split('\t');
+      if (parts.length >= 7) {
+        pairs.add('${parts[5]}=${parts[6]}');
+      }
+    }
+    return pairs.isEmpty ? null : pairs.join('; ');
+  }
 
   static Future<String?> load() async {
     if (_cached != null) return _cached;
@@ -10,10 +24,13 @@ class CookieLoader {
       final dir = await getApplicationDocumentsDirectory();
       final file = File('${dir.path}/murrtube_cookies.txt');
       if (await file.exists()) {
-        _cached = await file.readAsString();
+        final content = await file.readAsString();
+        _cached = parse(content) ?? content;
         return _cached;
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('CookieLoader.load error: $e');
+    }
     return null;
   }
 

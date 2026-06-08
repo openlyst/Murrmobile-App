@@ -48,11 +48,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
         _initPlayer(_medium!.hlsUrl!);
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading video: $e')),
-        );
-      }
+      debugPrint('VideoDetailPage load error: $e');
       setState(() => _loading = false);
     }
   }

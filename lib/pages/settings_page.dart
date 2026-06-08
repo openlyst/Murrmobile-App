@@ -28,11 +28,7 @@ class _SettingsPageState extends State<SettingsPage> {
         _loading = false;
       });
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
+      debugPrint('SettingsPage error: $e');
       setState(() => _loading = false);
     }
   }
@@ -66,12 +62,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     onTap: () async {
                       MurrtubeApi.clearCookies();
                       await CookieLoader.clear();
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Logged out')),
-                        );
-                        _load();
-                      }
+                      debugPrint('Logged out');
+                      if (mounted) _load();
                     },
                   ),
                   const Divider(),

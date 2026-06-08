@@ -44,11 +44,7 @@ class _AboutPageState extends State<AboutPage> {
         _loading = false;
       });
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
+      debugPrint('AboutPage error: $e');
       setState(() => _loading = false);
     }
   }

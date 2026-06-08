@@ -29,11 +29,7 @@ class _UploadPageState extends State<UploadPage> {
         _loading = false;
       });
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
+      debugPrint('UploadPage error: $e');
       setState(() => _loading = false);
     }
   }
@@ -99,10 +95,7 @@ class _UploadPageState extends State<UploadPage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Upload flow not implemented')),
-                        );
+                        debugPrint('Upload flow not implemented');
                       },
                       child: const Text('Select Video File'),
                     ),
