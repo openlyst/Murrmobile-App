@@ -9,9 +9,14 @@ import 'video_detail_page.dart';
 import 'profile_page.dart';
 
 class PlaylistPage extends StatefulWidget {
-  final String slug;
+  final String userSlug;
+  final String playlistSlug;
 
-  const PlaylistPage({super.key, required this.slug});
+  const PlaylistPage({
+    super.key,
+    required this.userSlug,
+    required this.playlistSlug,
+  });
 
   @override
   State<PlaylistPage> createState() => _PlaylistPageState();
@@ -34,7 +39,10 @@ class _PlaylistPageState extends State<PlaylistPage> {
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      final result = await MurrtubeApi.getPlaylist(widget.slug);
+      final result = await MurrtubeApi.getPlaylist(
+        widget.userSlug,
+        widget.playlistSlug,
+      );
       setState(() {
         _playlist = result.playlist;
         _media = result.media;
@@ -53,7 +61,11 @@ class _PlaylistPageState extends State<PlaylistPage> {
     if (!_hasMore || _loading) return;
     try {
       final nextPage = _currentPage + 1;
-      final result = await MurrtubeApi.getPlaylist(widget.slug, page: nextPage);
+      final result = await MurrtubeApi.getPlaylist(
+        widget.userSlug,
+        widget.playlistSlug,
+        page: nextPage,
+      );
       setState(() {
         _media.addAll(result.media);
         _hasMore = result.pagination.next != null;

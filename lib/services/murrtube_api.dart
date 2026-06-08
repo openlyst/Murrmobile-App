@@ -635,8 +635,9 @@ class MurrtubeApi {
     Pagination pagination,
     User? user,
     bool isOwner,
-  })> getPlaylist(String slug, {int page = 1}) async {
-    final path = page == 1 ? '/playlists/$slug' : '/playlists/$slug?page=$page';
+  })> getPlaylist(String userSlug, String playlistSlug, {int page = 1}) async {
+    var path = '/$userSlug/p/$playlistSlug';
+    if (page != 1) path += '?page=$page';
     final inertia = await _get(path);
     final props = inertia.props;
     final playlist = Playlist.fromJson(props['playlist'] as Map<String, dynamic>);

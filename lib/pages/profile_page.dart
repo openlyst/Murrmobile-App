@@ -579,10 +579,14 @@ class _ProfilePageState extends State<ProfilePage>
         final p = _playlists[index];
         return GestureDetector(
           onTap: () {
+            if (_user == null) return;
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => PlaylistPage(slug: p.slug),
+                builder: (_) => PlaylistPage(
+                  userSlug: _user!.slug,
+                  playlistSlug: p.slug,
+                ),
               ),
             );
           },
