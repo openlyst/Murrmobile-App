@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/murrtube_api.dart';
 import '../utils/cookie_loader.dart';
 import '../theme/app_theme.dart';
@@ -229,28 +230,35 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 20),
                 ],
-                _SectionLabel('Legal'),
+                _SectionLabel('Legal - Murrtube.net'),
                 _buildCard(
                   child: Column(
                     children: [
                       _buildActionTile(
                         icon: Icons.description_outlined,
                         label: 'Terms of Service',
-                        onTap: () => Navigator.pushNamed(context, '/about/terms'),
+                        onTap: () => launchUrl(
+                          Uri.parse('https://murrtube.net/about/terms'),
+                          mode: LaunchMode.externalApplication,
+                        ),
                         showDivider: true,
                       ),
                       _buildActionTile(
                         icon: Icons.privacy_tip_outlined,
                         label: 'Privacy Policy',
-                        onTap: () =>
-                            Navigator.pushNamed(context, '/about/privacy'),
+                        onTap: () => launchUrl(
+                          Uri.parse('https://murrtube.net/about/privacy'),
+                          mode: LaunchMode.externalApplication,
+                        ),
                         showDivider: true,
                       ),
                       _buildActionTile(
                         icon: Icons.cookie_outlined,
                         label: 'Cookie Policy',
-                        onTap: () =>
-                            Navigator.pushNamed(context, '/about/cookies'),
+                        onTap: () => launchUrl(
+                          Uri.parse('https://murrtube.net/about/cookies'),
+                          mode: LaunchMode.externalApplication,
+                        ),
                       ),
                     ],
                   ),
