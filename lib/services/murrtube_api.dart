@@ -52,12 +52,14 @@ class MurrtubeApi {
 
   static void _updateCookiesFromResponse(http.Response response) {
     final setCookies = response.headers['set-cookie'];
-    if (setCookies == null || _cookieString == null) return;
+    if (setCookies == null) return;
 
     final jar = <String, String>{};
-    for (final part in _cookieString!.split('; ')) {
-      final i = part.indexOf('=');
-      if (i != -1) jar[part.substring(0, i)] = part.substring(i + 1);
+    if (_cookieString != null) {
+      for (final part in _cookieString!.split('; ')) {
+        final i = part.indexOf('=');
+        if (i != -1) jar[part.substring(0, i)] = part.substring(i + 1);
+      }
     }
     for (final raw in setCookies.split(',')) {
       final c = raw.split(';').first.trim();
@@ -65,7 +67,7 @@ class MurrtubeApi {
       if (i != -1) jar[c.substring(0, i)] = c.substring(i + 1);
     }
     _cookieString = jar.entries.map((e) => '${e.key}=${e.value}').join('; ');
-    debugPrint('Updated cookies from response');
+    debugPrint('Updated cookies from response. Now cookies set? ${hasCookies}');
   }
 
   static Map<String, String> _headers({String? inertiaVersion}) {
@@ -143,21 +145,26 @@ class MurrtubeApi {
         debugPrint('Root page status: ${rootResp.statusCode}');
         debugPrint('Root page body starts with: ${rootBody.isNotEmpty ? rootBody.substring(0, rootBody.length.clamp(0, 60)) : "(empty)"}');
         _inertiaVersion = _extractInertiaVersion(rootBody);
+        // Check if age check is needed and bypass it
+        await _maybeBypassAgeCheck(rootBody);
       } else {
         _inertiaVersion = _extractInertiaVersion(body);
+        await _maybeBypassAgeCheck(body);
       }
 
-      debugPrint('Extracted version: $_inertiaVersion');
-      if (_inertiaVersion != null) {
-        response = await http.get(
-          uri,
-          headers: _headers(inertiaVersion: _inertiaVersion),
-        );
-        _updateCookiesFromResponse(response);
-        body = utf8.decode(response.bodyBytes);
-        debugPrint('Retry response status: ${response.statusCode}');
-        debugPrint('Retry response body starts with: ${body.isNotEmpty ? body.substring(0, body.length.clamp(0, 60)) : "(empty)"}');
+      if (_inertiaVersion == null) {
+        debugPrint('Version extraction failed, trying default version 1');
+        _inertiaVersion = '1';
       }
+      debugPrint('Extracted version: $_inertiaVersion');
+      response = await http.get(
+        uri,
+        headers: _headers(inertiaVersion: _inertiaVersion),
+      );
+      _updateCookiesFromResponse(response);
+      body = utf8.decode(response.bodyBytes);
+      debugPrint('Retry response status: ${response.statusCode}');
+      debugPrint('Retry response body starts with: ${body.isNotEmpty ? body.substring(0, body.length.clamp(0, 2000)) : "(empty)"}');
     }
 
     if (response.statusCode != 200) {
@@ -174,6 +181,50 @@ class MurrtubeApi {
     return InertiaPage.fromJson(jsonDecode(body));
   }
 
+  static Future<void> _maybeBypassAgeCheck(String html) async {
+    // Check if this is an age-check page
+    if (!html.contains('age_check') && !html.contains('age-check')) return;
+
+    // Extract CSRF token from meta tag
+    final csrfRegex = RegExp(r'<meta name="csrf-token" content="([^"]+)"');
+    final csrfMatch = csrfRegex.firstMatch(html);
+    final csrfToken = csrfMatch?.group(1);
+    if (csrfToken == null) {
+      debugPrint('Age check detected but no CSRF token found');
+      return;
+    }
+
+    // Extract the actual form action from HTML
+    final actionRegex = RegExp(r'action="([^"]*age_check[^"]*)"');
+    final actionMatch = actionRegex.firstMatch(html);
+    var ageUrl = actionMatch?.group(1);
+    if (ageUrl == null) {
+      // Fallback: try common patterns
+      ageUrl = '/age_check';
+    }
+    if (!ageUrl.startsWith('http')) {
+      ageUrl = '$baseUrl$ageUrl';
+    }
+
+    debugPrint('Age check detected. POSTing to: $ageUrl');
+    final request = http.MultipartRequest('POST', Uri.parse(ageUrl))
+      ..fields['authenticity_token'] = csrfToken;
+
+    request.headers.addAll({
+      'User-Agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Referer': baseUrl,
+      if (_cookieString != null) 'Cookie': _cookieString!,
+    });
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+    _updateCookiesFromResponse(response);
+    debugPrint('Age check POST status: ${response.statusCode}');
+  }
+
   static String? _extractInertiaVersion(String html) {
     debugPrint('Extracting Inertia version from HTML (${html.length} chars)');
     // 1. Plain JSON in script tags
@@ -184,7 +235,7 @@ class MurrtubeApi {
       debugPrint('Found version via regex: $v');
       return v;
     }
-    // 2. data-page attribute with HTML-escaped JSON
+    // 2. data-page attribute with double quotes
     final dataPageRegex = RegExp(r'data-page="([^"]+)"');
     final dataMatch = dataPageRegex.firstMatch(html);
     if (dataMatch != null) {
@@ -204,6 +255,26 @@ class MurrtubeApi {
         debugPrint('data-page parse failed: $e');
       }
     }
+    // 2b. data-page with single quotes
+    final dataPageRegex2 = RegExp(r"data-page='([^']+)'");
+    final dataMatch2 = dataPageRegex2.firstMatch(html);
+    if (dataMatch2 != null) {
+      try {
+        final raw = dataMatch2.group(1)!;
+        final cleaned = raw
+            .replaceAll('&quot;', '"')
+            .replaceAll('\\"', '"')
+            .replaceAll('\\n', '\n');
+        final decoded = jsonDecode(cleaned);
+        if (decoded is Map<String, dynamic>) {
+          final v = decoded['version'] as String?;
+          debugPrint('Found version via data-page single: $v');
+          return v;
+        }
+      } catch (e) {
+        debugPrint('data-page single parse failed: $e');
+      }
+    }
     // 3. HTML-escaped &quot;version&quot; in raw HTML
     final quotRegex = RegExp(r'&quot;version&quot;:&quot;([^&]+)&quot;');
     final quotMatch = quotRegex.firstMatch(html);
@@ -212,7 +283,17 @@ class MurrtubeApi {
       debugPrint('Found version via &quot; regex: $v');
       return v;
     }
-    debugPrint('No version found in HTML');
+    // 4. window.__inertia or similar script variable
+    final scriptRegex = RegExp(r'window\.__inertia\s*=\s*\{[^}]*"version"\s*:\s*"([^"]+)"');
+    final scriptMatch = scriptRegex.firstMatch(html);
+    if (scriptMatch != null) {
+      final v = scriptMatch.group(1);
+      debugPrint('Found version via script: $v');
+      return v;
+    }
+    // 5. Any occurrence of version in first 500 chars
+    final dump = html.substring(0, html.length.clamp(0, 500));
+    debugPrint('No version found. HTML snippet: $dump');
     return null;
   }
 
