@@ -25,6 +25,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   bool _showComments = false;
   bool _showSkip = false;
   bool _skipForward = true;
+  bool _isDraggingTimeline = false;
+  double _dragProgress = 0;
 
   @override
   void initState() {
@@ -286,27 +288,79 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(2),
-                                child: LinearProgressIndicator(
-                                  value: _controller!.value.duration.inMilliseconds > 0
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final barWidth = constraints.maxWidth;
+                                  void seekToFraction(double fraction) {
+                                    final dur = _controller!.value.duration;
+                                    _controller!.seekTo(
+                                      Duration(
+                                        milliseconds: (fraction.clamp(0.0, 1.0) * dur.inMilliseconds).round(),
+                                      ),
+                                    );
+                                  }
+
+                                  final progress = _controller!.value.duration.inMilliseconds > 0
                                       ? _controller!.value.position.inMilliseconds /
                                           _controller!.value.duration.inMilliseconds
-                                      : 0,
-                                  backgroundColor:
-                                      Colors.white.withValues(alpha: 0.2),
-                                  valueColor:
-                                      const AlwaysStoppedAnimation(AppColors.primary),
-                                  minHeight: 3,
-                                ),
+                                      : 0.0;
+
+                                  return GestureDetector(
+                                    behavior: HitTestBehavior.translucent,
+                                    onTapDown: (details) {
+                                      final fraction = details.localPosition.dx / barWidth;
+                                      seekToFraction(fraction);
+                                    },
+                                    onHorizontalDragStart: (_) {
+                                      setState(() => _isDraggingTimeline = true);
+                                    },
+                                    onHorizontalDragUpdate: (details) {
+                                      final fraction = details.localPosition.dx / barWidth;
+                                      setState(() => _dragProgress = fraction.clamp(0.0, 1.0));
+                                    },
+                                    onHorizontalDragEnd: (_) {
+                                      seekToFraction(_dragProgress);
+                                      setState(() => _isDraggingTimeline = false);
+                                    },
+                                    onHorizontalDragCancel: () {
+                                      setState(() => _isDraggingTimeline = false);
+                                    },
+                                    child: Container(
+                                      height: 24,
+                                      alignment: Alignment.center,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(2),
+                                        child: Container(
+                                          height: 3,
+                                          color: Colors.white.withValues(alpha: 0.2),
+                                          child: FractionallySizedBox(
+                                            alignment: Alignment.centerLeft,
+                                            widthFactor: _isDraggingTimeline
+                                                ? _dragProgress
+                                                : progress,
+                                            child: Container(color: AppColors.primary),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
-                              const SizedBox(height: 6),
+                              const SizedBox(height: 4),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    _formatDuration(_controller!.value.position),
+                                    _formatDuration(
+                                      _isDraggingTimeline
+                                          ? Duration(
+                                              milliseconds: (_dragProgress *
+                                                      _controller!.value.duration.inMilliseconds)
+                                                  .round(),
+                                            )
+                                          : _controller!.value.position,
+                                    ),
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 11,
