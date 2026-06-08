@@ -6,6 +6,7 @@ import '../models/user.dart';
 import '../services/murrtube_api.dart';
 import '../widgets/video_card.dart';
 import 'video_detail_page.dart';
+import 'playlist_page.dart';
 
 class ProfilePage extends StatefulWidget {
   final String slug;
@@ -576,43 +577,53 @@ class _ProfilePageState extends State<ProfilePage>
       itemCount: _playlists.length,
       itemBuilder: (context, index) {
         final p = _playlists[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
-            ),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.playlist_play, color: colorScheme.primary),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      p.name,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    Text(
-                      '${p.visibility} · ${p.itemsCount} items',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: mutedColor,
-                      ),
-                    ),
-                  ],
-                ),
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PlaylistPage(slug: p.slug),
               ),
-              Icon(Icons.chevron_right, color: mutedColor, size: 20),
-            ],
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.playlist_play, color: colorScheme.primary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        p.name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      Text(
+                        '${p.visibility} · ${p.itemsCount} items',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: mutedColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right, color: mutedColor, size: 20),
+              ],
+            ),
           ),
         );
       },

@@ -629,6 +629,36 @@ class MurrtubeApi {
     );
   }
 
+  static Future<({
+    Playlist playlist,
+    List<Media> media,
+    Pagination pagination,
+    User? user,
+    bool isOwner,
+  })> getPlaylist(String slug, {int page = 1}) async {
+    final path = page == 1 ? '/playlists/$slug' : '/playlists/$slug?page=$page';
+    final inertia = await _get(path);
+    final props = inertia.props;
+    final playlist = Playlist.fromJson(props['playlist'] as Map<String, dynamic>);
+    final mediaList = (props['media'] as List<dynamic>? ?? [])
+        .map((m) => Media.fromJson(m as Map<String, dynamic>))
+        .toList();
+    final pagination = Pagination.fromJson(
+      props['pagination'] as Map<String, dynamic>? ??
+          {'page': 1, 'pages': 1, 'count': mediaList.length, 'next': null, 'prev': null},
+    );
+    final user = props['user'] != null
+        ? User.fromJson(props['user'] as Map<String, dynamic>)
+        : null;
+    return (
+      playlist: playlist,
+      media: mediaList,
+      pagination: pagination,
+      user: user,
+      isOwner: props['is_owner'] as bool? ?? false,
+    );
+  }
+
   static Future<void> addToPlaylist({
     required String playlistId,
     required String shortCode,
