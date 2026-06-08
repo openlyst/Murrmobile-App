@@ -48,7 +48,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
         page: SearchPage(),
       ),
     ];
-    if (MurrtubeApi.hasCookies) {
+    if (MurrtubeApi.isAuthenticated) {
       base.addAll(const [
         NavItem(
           label: 'Upload',
@@ -77,13 +77,13 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
   void initState() {
     super.initState();
     _selectedIndex = widget.initialIndex;
-    _wasLoggedIn = MurrtubeApi.hasCookies;
+    _wasLoggedIn = MurrtubeApi.isAuthenticated;
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final nowLoggedIn = MurrtubeApi.hasCookies;
+    final nowLoggedIn = MurrtubeApi.isAuthenticated;
     if (nowLoggedIn != _wasLoggedIn) {
       _wasLoggedIn = nowLoggedIn;
       if (_selectedIndex >= _items.length) {
@@ -314,7 +314,7 @@ class _DesktopLayout extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                if (MurrtubeApi.hasCookies)
+                if (MurrtubeApi.isAuthenticated)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Material(

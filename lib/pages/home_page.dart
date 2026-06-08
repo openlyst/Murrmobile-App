@@ -27,14 +27,14 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _currentTab = widget.tab;
-    _wasLoggedIn = MurrtubeApi.hasCookies;
+    _wasLoggedIn = MurrtubeApi.isAuthenticated;
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final nowLoggedIn = MurrtubeApi.hasCookies;
+    final nowLoggedIn = MurrtubeApi.isAuthenticated;
     if (nowLoggedIn != _wasLoggedIn) {
       _wasLoggedIn = nowLoggedIn;
       if (!nowLoggedIn && _currentTab == 'subscriptions') {
@@ -113,7 +113,7 @@ class _HomePageState extends State<HomePage> {
                       active: _currentTab == 'trending',
                       onTap: () => _switchTab('trending'),
                     ),
-                    if (MurrtubeApi.hasCookies) ...[
+                    if (MurrtubeApi.isAuthenticated) ...[
                       const SizedBox(width: 10),
                       _PillTab(
                         label: 'Subscriptions',

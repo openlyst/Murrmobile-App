@@ -885,7 +885,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                               color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
                             ),
                             GestureDetector(
-                              onTap: MurrtubeApi.hasCookies ? _showSaveBottomSheet : null,
+                              onTap: MurrtubeApi.isAuthenticated ? _showSaveBottomSheet : null,
                               child: _StatItem(
                                 icon: Icons.playlist_add_rounded,
                                 value: '',

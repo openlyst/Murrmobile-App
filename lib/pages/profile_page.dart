@@ -127,7 +127,7 @@ class _ProfilePageState extends State<ProfilePage>
   }
 
   Future<void> _toggleSubscribe() async {
-    if (_user == null || _isSelf || !MurrtubeApi.hasCookies) return;
+    if (_user == null || _isSelf || !MurrtubeApi.isAuthenticated) return;
     final wasSubscribed = _isSubscribed;
     setState(() {
       _isSubscribed = !wasSubscribed;
@@ -422,7 +422,7 @@ class _ProfilePageState extends State<ProfilePage>
             ],
           ),
           const SizedBox(height: 16),
-          if (!_isSelf && MurrtubeApi.hasCookies)
+          if (!_isSelf && MurrtubeApi.isAuthenticated)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: SizedBox(

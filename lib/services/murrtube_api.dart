@@ -36,6 +36,10 @@ class MurrtubeApi {
   static String? _cookieString;
 
   static bool get hasCookies => _cookieString != null && _cookieString!.isNotEmpty;
+  static bool get isAuthenticated {
+    if (_cookieString == null) return false;
+    return _cookieString!.contains('session_id=');
+  }
   static String? currentUserSlug;
 
   static void setCookies(String cookies) {

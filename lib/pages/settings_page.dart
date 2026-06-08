@@ -25,7 +25,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    _wasLoggedIn = MurrtubeApi.hasCookies;
+    _wasLoggedIn = MurrtubeApi.isAuthenticated;
     _loadLocal();
     _load();
   }
@@ -40,7 +40,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final nowLoggedIn = MurrtubeApi.hasCookies;
+    final nowLoggedIn = MurrtubeApi.isAuthenticated;
     if (nowLoggedIn != _wasLoggedIn) {
       _wasLoggedIn = nowLoggedIn;
       _load();
@@ -48,7 +48,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _load() async {
-    if (!MurrtubeApi.hasCookies) {
+    if (!MurrtubeApi.isAuthenticated) {
       setState(() {
         _props = null;
         _loading = false;
