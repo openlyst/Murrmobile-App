@@ -73,16 +73,13 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final user = _props?['user'] as Map<String, dynamic>?;
-    final serverThemes = _props?['themes'] as List<dynamic>? ?? [];
     final serverQuality = _props?['video_quality_options'] as List<dynamic>? ?? [];
 
-    final themes = serverThemes.isNotEmpty
-        ? serverThemes
-        : [
-            {'name': 'Dark', 'value': 'dark'},
-            {'name': 'Light', 'value': 'light'},
-            {'name': 'AMOLED', 'value': 'amoled'},
-          ];
+    final themes = [
+      {'name': 'Dark', 'value': 'dark'},
+      {'name': 'Light', 'value': 'light'},
+      {'name': 'AMOLED', 'value': 'amoled'},
+    ];
     final qualityOptions = serverQuality.isNotEmpty
         ? serverQuality
         : [
@@ -227,9 +224,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         onTap: () => _showSelectionSheet(
                           title: 'Select Theme',
                           options: themes.map((t) {
-                            final isMap = t is Map<String, dynamic>;
-                            final name = isMap ? (t['name'] ?? 'Theme') : t.toString();
-                            final value = isMap ? (t['value'] ?? name.toLowerCase()) : t.toString().toLowerCase();
+                            final name = t['name'] ?? 'Theme';
+                            final value = t['value'] ?? name.toLowerCase();
                             return _SelectionOption(label: name, value: value);
                           }).toList(),
                           selected: current,
