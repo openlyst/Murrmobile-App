@@ -641,6 +641,7 @@ class MurrtubeApi {
     final inertia = await _get(path);
     final props = inertia.props;
     final playlist = Playlist.fromJson(props['playlist'] as Map<String, dynamic>);
+    debugPrint('PlaylistShow props keys: ${props.keys.toList()}');
     final mediaList = (props['media'] as List<dynamic>? ?? [])
         .map((m) => Media.fromJson(m as Map<String, dynamic>))
         .toList();
