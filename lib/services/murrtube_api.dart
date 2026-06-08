@@ -345,12 +345,12 @@ class MurrtubeApi {
     final inertia = await _get(path);
     final props = inertia.props;
 
-    final userRaw = props['user'] ?? props['profile_user'] ?? props['author'];
-    if (userRaw == null || userRaw is! Map<String, dynamic>) {
-      debugPrint('ProfilePage missing user. Available props keys: ${props.keys.toList()}');
+    final profileRaw = props['profile'];
+    if (profileRaw == null || profileRaw is! Map<String, dynamic>) {
+      debugPrint('ProfilePage missing profile. Available props keys: ${props.keys.toList()}');
       throw Exception('User not found for slug: $slug');
     }
-    final user = User.fromJson(userRaw);
+    final user = User.fromJson(profileRaw);
 
     final mediaList = (props['media'] as List<dynamic>? ?? [])
         .map((m) => Media.fromJson(m as Map<String, dynamic>))
@@ -368,10 +368,11 @@ class MurrtubeApi {
     if (currentUser != null) {
       currentUserSlug = currentUser.slug;
     }
-    final isSelf = props['is_self'] as bool? ?? false;
+    final isSelf = props['viewing_self'] as bool? ?? false;
     if (isSelf) {
       currentUserSlug = user.slug;
     }
+    final tabCounts = props['tab_counts'] as Map<String, dynamic>?;
     return (
       user: user,
       media: mediaList,
@@ -380,10 +381,10 @@ class MurrtubeApi {
       isSubscribed: props['is_subscribed'] as bool? ?? false,
       isSelf: isSelf,
       currentUser: currentUser,
-      subscribersCount: props['subscribers_count'] as int? ?? props['subscribers'] as int?,
-      subscriptionsCount: props['subscriptions_count'] as int? ?? props['subscriptions'] as int?,
-      bio: props['bio'] as String? ?? props['description'] as String?,
-      telegramUrl: props['telegram_url'] as String?,
+      subscribersCount: tabCounts?['subscribers'] as int? ?? profileRaw['subscribers_count'] as int?,
+      subscriptionsCount: tabCounts?['subscriptions'] as int? ?? profileRaw['subscriptions_count'] as int?,
+      bio: profileRaw['bio'] as String? ?? profileRaw['description'] as String?,
+      telegramUrl: profileRaw['telegram_url'] as String?,
     );
   }
 
