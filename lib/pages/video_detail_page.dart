@@ -3,6 +3,7 @@ import 'package:video_player/video_player.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/media.dart';
 import '../models/comment.dart';
+import '../models/playlist.dart';
 import '../services/murrtube_api.dart';
 import '../theme/app_theme.dart';
 import '../widgets/video_card.dart';
@@ -30,6 +31,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   bool _viewerCanLike = false;
   bool _viewerLiked = false;
   int _likesCount = 0;
+  List<Playlist> _playlists = [];
+  bool _loadingPlaylists = false;
 
   @override
   void initState() {
@@ -62,6 +65,66 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
       debugPrint('VideoDetailPage load error: $e');
       setState(() => _loading = false);
     }
+  }
+
+  Future<void> _showSaveBottomSheet() async {
+    if (_medium == null) return;
+    setState(() => _loadingPlaylists = true);
+    try {
+      _playlists = await MurrtubeApi.getMyPlaylists();
+    } catch (e) {
+      debugPrint('Load playlists error: $e');
+    } finally {
+      setState(() => _loadingPlaylists = false);
+    }
+    if (!mounted) return;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => _SaveSheet(
+        playlists: _playlists,
+        loading: _loadingPlaylists,
+        medium: _medium!,
+        onCreate: (name, visibility) async {
+          await MurrtubeApi.createPlaylist(
+            name: name,
+            visibility: visibility,
+          );
+          final updated = await MurrtubeApi.getMyPlaylists();
+          final created = updated.firstWhere(
+            (p) => p.name == name,
+            orElse: () => updated.first,
+          );
+          await MurrtubeApi.addToPlaylist(
+            playlistId: created.id,
+            shortCode: _medium!.shortCode,
+            mediumId: _medium!.id,
+          );
+          if (mounted) {
+            Navigator.of(ctx).pop();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Saved to $name')),
+            );
+          }
+        },
+        onSelect: (playlist) async {
+          await MurrtubeApi.addToPlaylist(
+            playlistId: playlist.id,
+            shortCode: _medium!.shortCode,
+            mediumId: _medium!.id,
+          );
+          if (mounted) {
+            Navigator.of(ctx).pop();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Saved to ${playlist.name}')),
+            );
+          }
+        },
+      ),
+    );
   }
 
   Future<void> _toggleLike() async {
@@ -600,6 +663,19 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                               height: 28,
                               color: AppColors.divider.withValues(alpha: 0.3),
                             ),
+                            GestureDetector(
+                              onTap: MurrtubeApi.hasCookies ? _showSaveBottomSheet : null,
+                              child: _StatItem(
+                                icon: Icons.playlist_add_rounded,
+                                value: 'Save',
+                                label: '',
+                              ),
+                            ),
+                            Container(
+                              width: 1,
+                              height: 28,
+                              color: AppColors.divider.withValues(alpha: 0.3),
+                            ),
                             _StatItem(
                               icon: Icons.chat_bubble_outline,
                               value: '${medium.commentsCount}',
@@ -791,6 +867,248 @@ class _StatItem extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SaveSheet extends StatefulWidget {
+  final List<Playlist> playlists;
+  final bool loading;
+  final Media medium;
+  final Future<void> Function(String name, String visibility) onCreate;
+  final void Function(Playlist playlist) onSelect;
+
+  const _SaveSheet({
+    required this.playlists,
+    required this.loading,
+    required this.medium,
+    required this.onCreate,
+    required this.onSelect,
+  });
+
+  @override
+  State<_SaveSheet> createState() => _SaveSheetState();
+}
+
+class _SaveSheetState extends State<_SaveSheet> {
+  bool _creating = false;
+  bool _showCreateForm = false;
+  final _nameController = TextEditingController();
+  String _visibility = 'public';
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.divider.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Save to playlist',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.text,
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (widget.loading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                ),
+              )
+            else if (_showCreateForm)
+              _buildCreateForm()
+            else
+              _buildPlaylistList(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlaylistList() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (widget.playlists.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Text(
+              'No playlists yet',
+              style: TextStyle(
+                color: AppColors.textMuted.withValues(alpha: 0.7),
+              ),
+            ),
+          )
+        else
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 280),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: widget.playlists.length,
+              itemBuilder: (ctx, i) {
+                final p = widget.playlists[i];
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(
+                    Icons.playlist_play,
+                    color: AppColors.textMuted,
+                  ),
+                  title: Text(
+                    p.name,
+                    style: const TextStyle(color: AppColors.text),
+                  ),
+                  subtitle: Text(
+                    '${p.visibility} · ${p.itemsCount} items',
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                  ),
+                  onTap: () => widget.onSelect(p),
+                );
+              },
+            ),
+          ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () => setState(() => _showCreateForm = true),
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('Create new playlist'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCreateForm() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _nameController,
+          decoration: const InputDecoration(
+            labelText: 'Playlist name',
+            hintText: 'My favorites',
+          ),
+          autofocus: true,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Visibility',
+          style: TextStyle(
+            fontSize: 13,
+            color: AppColors.textMuted.withValues(alpha: 0.8),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            _VisibilityChip(
+              label: 'Public',
+              selected: _visibility == 'public',
+              onTap: () => setState(() => _visibility = 'public'),
+            ),
+            const SizedBox(width: 8),
+            _VisibilityChip(
+              label: 'Unlisted',
+              selected: _visibility == 'unlisted',
+              onTap: () => setState(() => _visibility = 'unlisted'),
+            ),
+            const SizedBox(width: 8),
+            _VisibilityChip(
+              label: 'Private',
+              selected: _visibility == 'private',
+              onTap: () => setState(() => _visibility = 'private'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: _creating || _nameController.text.trim().isEmpty
+                ? null
+                : () async {
+                    setState(() => _creating = true);
+                    try {
+                      await widget.onCreate(_nameController.text.trim(), _visibility);
+                    } finally {
+                      if (mounted) setState(() => _creating = false);
+                    }
+                  },
+            child: _creating
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text('Create & save'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _VisibilityChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _VisibilityChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primary.withValues(alpha: 0.2) : AppColors.surfaceHighlight,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? AppColors.primary : AppColors.divider,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: selected ? AppColors.primary : AppColors.textMuted,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+      ),
     );
   }
 }

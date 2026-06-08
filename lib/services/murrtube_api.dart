@@ -8,6 +8,7 @@ import '../models/pagination.dart';
 import '../models/announcement.dart';
 import '../models/notification.dart';
 import '../models/user.dart';
+import '../models/playlist.dart';
 import '../models/tag.dart';
 
 class InertiaPage {
@@ -422,6 +423,109 @@ class MurrtubeApi {
     _updateCookiesFromResponse(response);
     debugPrint('unlikeVideo status: ${response.statusCode}');
     debugPrint('unlikeVideo response body: ${utf8.decode(response.bodyBytes)}');
+    if (response.statusCode != 200) {
+      throw HttpException('HTTP ${response.statusCode}');
+    }
+  }
+
+  // Playlists
+  static Future<List<Playlist>> getMyPlaylists() async {
+    final token = await _fetchCsrfToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/playlists/mine'),
+      headers: {
+        'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Referer': baseUrl,
+        'x-csrf-token': token,
+        'Cookie': _cookieString!,
+      },
+    );
+    _updateCookiesFromResponse(response);
+    final body = utf8.decode(response.bodyBytes);
+    debugPrint('getMyPlaylists status: ${response.statusCode}');
+    if (response.statusCode != 200) {
+      throw HttpException('HTTP ${response.statusCode}');
+    }
+    final json = jsonDecode(body) as Map<String, dynamic>;
+    final playlists = (json['playlists'] as List<dynamic>? ?? [])
+        .map((p) => Playlist.fromJson(p as Map<String, dynamic>))
+        .toList();
+    return playlists;
+  }
+
+  static Future<Playlist> createPlaylist({
+    required String name,
+    String? description,
+    required String visibility,
+  }) async {
+    final token = await _fetchCsrfToken();
+    final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/playlists'))
+      ..fields['playlist[name]'] = name
+      ..fields['playlist[visibility]'] = visibility;
+    if (description != null && description.isNotEmpty) {
+      request.fields['playlist[description]'] = description;
+    }
+    request.headers.addAll({
+      'User-Agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+      'Accept': 'application/json',
+      'Referer': baseUrl,
+      'Origin': baseUrl,
+      'X-Requested-With': 'XMLHttpRequest',
+      'x-csrf-token': token,
+      'Cookie': _cookieString!,
+    });
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+    _updateCookiesFromResponse(response);
+    final body = utf8.decode(response.bodyBytes);
+    debugPrint('createPlaylist status: ${response.statusCode}');
+    debugPrint('createPlaylist body: $body');
+    if (response.statusCode != 200) {
+      throw HttpException('HTTP ${response.statusCode}');
+    }
+    final json = jsonDecode(body) as Map<String, dynamic>;
+    return Playlist(
+      id: '',
+      name: name,
+      description: description,
+      visibility: visibility,
+      slug: json['slug'] as String,
+    );
+  }
+
+  static Future<void> addToPlaylist({
+    required String playlistId,
+    required String shortCode,
+    required String mediumId,
+  }) async {
+    final token = await _fetchCsrfToken();
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('$baseUrl/playlists/$playlistId/items'),
+    )
+      ..fields['short_code'] = shortCode
+      ..fields['medium_id'] = mediumId;
+    request.headers.addAll({
+      'User-Agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+      'Accept': 'application/json',
+      'Referer': baseUrl,
+      'Origin': baseUrl,
+      'X-Requested-With': 'XMLHttpRequest',
+      'x-csrf-token': token,
+      'Cookie': _cookieString!,
+    });
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+    _updateCookiesFromResponse(response);
+    final body = utf8.decode(response.bodyBytes);
+    debugPrint('addToPlaylist status: ${response.statusCode}');
+    debugPrint('addToPlaylist body: $body');
     if (response.statusCode != 200) {
       throw HttpException('HTTP ${response.statusCode}');
     }
