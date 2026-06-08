@@ -23,6 +23,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   VideoPlayerController? _controller;
   bool _loading = true;
   bool _showComments = false;
+  bool _showSkip = false;
+  bool _skipForward = true;
 
   @override
   void initState() {
@@ -56,9 +58,48 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
 
   void _initPlayer(String url) {
     _controller = VideoPlayerController.networkUrl(Uri.parse(url))
+      ..addListener(() {
+        if (mounted) setState(() {});
+      })
       ..initialize().then((_) {
         if (mounted) setState(() {});
       });
+  }
+
+  void _onDoubleTap(bool forward) {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+    final pos = _controller!.value.position;
+    final dur = _controller!.value.duration;
+
+    Duration newPos;
+    if (forward) {
+      newPos = pos + const Duration(seconds: 10);
+      if (newPos > dur) newPos = dur;
+    } else {
+      newPos = pos - const Duration(seconds: 10);
+      if (newPos < Duration.zero) newPos = Duration.zero;
+    }
+
+    _controller!.seekTo(newPos);
+    setState(() {
+      _showSkip = true;
+      _skipForward = forward;
+    });
+
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (mounted) setState(() => _showSkip = false);
+    });
+  }
+
+  String _formatDuration(Duration d) {
+    String two(int n) => n.toString().padLeft(2, '0');
+    final hours = d.inHours;
+    final minutes = d.inMinutes.remainder(60);
+    final seconds = d.inSeconds.remainder(60);
+    if (hours > 0) {
+      return '${two(hours)}:${two(minutes)}:${two(seconds)}';
+    }
+    return '${two(minutes)}:${two(seconds)}';
   }
 
   @override
@@ -142,6 +183,29 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                         ),
                       ),
                     ),
+                    // Double tap zones
+                    if (_controller != null && _controller!.value.isInitialized)
+                      Positioned.fill(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onDoubleTap: () => _onDoubleTap(false),
+                                behavior: HitTestBehavior.translucent,
+                                child: Container(color: Colors.transparent),
+                              ),
+                            ),
+                            Expanded(
+                              child: GestureDetector(
+                                onDoubleTap: () => _onDoubleTap(true),
+                                behavior: HitTestBehavior.translucent,
+                                child: Container(color: Colors.transparent),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    // Play/Pause single tap overlay
                     if (_controller != null && _controller!.value.isInitialized)
                       Positioned.fill(
                         child: GestureDetector(
@@ -173,6 +237,102 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                 ),
                               ),
                             ),
+                          ),
+                        ),
+                      ),
+                    // Skip animation overlay
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: AnimatedOpacity(
+                          opacity: _showSkip ? 1 : 0,
+                          duration: const Duration(milliseconds: 200),
+                          child: Container(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            child: Center(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _skipForward
+                                        ? Icons.forward_10
+                                        : Icons.replay_10,
+                                    color: Colors.white,
+                                    size: 48,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    _skipForward ? '+10s' : '-10s',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Bottom timeline
+                    if (_controller != null && _controller!.value.isInitialized)
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.fromLTRB(12, 16, 12, 10),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.6),
+                              ],
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(2),
+                                child: LinearProgressIndicator(
+                                  value: _controller!.value.duration.inMilliseconds > 0
+                                      ? _controller!.value.position.inMilliseconds /
+                                          _controller!.value.duration.inMilliseconds
+                                      : 0,
+                                  backgroundColor:
+                                      Colors.white.withValues(alpha: 0.2),
+                                  valueColor:
+                                      const AlwaysStoppedAnimation(AppColors.primary),
+                                  minHeight: 3,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    _formatDuration(_controller!.value.position),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Text(
+                                    _formatDuration(_controller!.value.duration),
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                       ),
