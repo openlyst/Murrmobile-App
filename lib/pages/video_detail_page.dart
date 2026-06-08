@@ -98,31 +98,31 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Video Player / Thumbnail
-                Stack(
-                  children: [
-                    if (_controller != null && _controller!.value.isInitialized)
-                      AspectRatio(
-                        aspectRatio: _controller!.value.aspectRatio,
-                        child: VideoPlayer(_controller!),
-                      )
-                    else
-                      AspectRatio(
-                        aspectRatio: 16 / 9,
-                        child: CachedNetworkImage(
-                          imageUrl: medium.thumbnailUrl,
-                          fit: BoxFit.cover,
-                          placeholder: (_, __) => Container(
-                            color: AppColors.surfaceHighlight,
-                          ),
-                          errorWidget: (_, __, ___) => Container(
-                            color: AppColors.surfaceHighlight,
-                            child: const Icon(
-                              Icons.broken_image_outlined,
-                              color: AppColors.textMuted,
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1200),
+                    child: AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (_controller != null && _controller!.value.isInitialized)
+                            VideoPlayer(_controller!)
+                          else
+                            CachedNetworkImage(
+                              imageUrl: medium.thumbnailUrl,
+                              fit: BoxFit.cover,
+                              placeholder: (_, __) => Container(
+                                color: AppColors.surfaceHighlight,
+                              ),
+                              errorWidget: (_, __, ___) => Container(
+                                color: AppColors.surfaceHighlight,
+                                child: const Icon(
+                                  Icons.broken_image_outlined,
+                                  color: AppColors.textMuted,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ),
                     Positioned(
                       top: 12,
                       left: 12,
@@ -176,7 +176,10 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                           ),
                         ),
                       ),
-                  ],
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
                 // Info
                 Padding(
