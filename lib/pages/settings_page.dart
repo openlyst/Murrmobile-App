@@ -168,6 +168,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   _buildCard(
                     child: Column(
                       children: themes
+                          .whereType<Map<String, dynamic>>()
                           .map((t) => _buildActionTile(
                                 icon: t['active'] == true
                                     ? Icons.check_circle
@@ -189,6 +190,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   _buildCard(
                     child: Column(
                       children: qualityOptions
+                          .whereType<Map<String, dynamic>>()
                           .map((q) => _buildActionTile(
                                 icon: q['active'] == true
                                     ? Icons.check_circle
