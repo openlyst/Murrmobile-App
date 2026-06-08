@@ -38,6 +38,9 @@ class _HomePageState extends State<HomePage> {
     final nowLoggedIn = MurrtubeApi.hasCookies;
     if (nowLoggedIn != _wasLoggedIn) {
       _wasLoggedIn = nowLoggedIn;
+      if (!nowLoggedIn && _currentTab == 'subscriptions') {
+        _currentTab = 'trending';
+      }
       _currentPage = 1;
       _load();
     }
@@ -111,12 +114,14 @@ class _HomePageState extends State<HomePage> {
                       active: _currentTab == 'trending',
                       onTap: () => _switchTab('trending'),
                     ),
-                    const SizedBox(width: 10),
-                    _PillTab(
-                      label: 'Subscriptions',
-                      active: _currentTab == 'subscriptions',
-                      onTap: () => _switchTab('subscriptions'),
-                    ),
+                    if (MurrtubeApi.hasCookies) ...[
+                      const SizedBox(width: 10),
+                      _PillTab(
+                        label: 'Subscriptions',
+                        active: _currentTab == 'subscriptions',
+                        onTap: () => _switchTab('subscriptions'),
+                      ),
+                    ],
                   ],
                 ),
               ),
