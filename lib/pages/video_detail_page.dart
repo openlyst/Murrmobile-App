@@ -144,26 +144,35 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                     constraints: const BoxConstraints(maxWidth: 1200),
                     child: AspectRatio(
                       aspectRatio: 16 / 9,
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          if (_controller != null && _controller!.value.isInitialized)
-                            VideoPlayer(_controller!)
-                          else
-                            CachedNetworkImage(
-                              imageUrl: medium.thumbnailUrl,
-                              fit: BoxFit.cover,
-                              placeholder: (_, __) => Container(
-                                color: AppColors.surfaceHighlight,
-                              ),
-                              errorWidget: (_, __, ___) => Container(
-                                color: AppColors.surfaceHighlight,
-                                child: const Icon(
-                                  Icons.broken_image_outlined,
-                                  color: AppColors.textMuted,
+                      child: Container(
+                        color: Colors.black,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            if (_controller != null && _controller!.value.isInitialized)
+                              FittedBox(
+                                fit: BoxFit.contain,
+                                child: SizedBox(
+                                  width: _controller!.value.size.width,
+                                  height: _controller!.value.size.height,
+                                  child: VideoPlayer(_controller!),
+                                ),
+                              )
+                            else
+                              CachedNetworkImage(
+                                imageUrl: medium.thumbnailUrl,
+                                fit: BoxFit.contain,
+                                placeholder: (_, __) => Container(
+                                  color: AppColors.surfaceHighlight,
+                                ),
+                                errorWidget: (_, __, ___) => Container(
+                                  color: AppColors.surfaceHighlight,
+                                  child: const Icon(
+                                    Icons.broken_image_outlined,
+                                    color: AppColors.textMuted,
+                                  ),
                                 ),
                               ),
-                            ),
                     // Double tap zones
                     if (_controller != null && _controller!.value.isInitialized)
                       Positioned.fill(
@@ -341,6 +350,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                       ),
                     ),
                   ),
+                ),
                 ),
                 // Info
                 Padding(
