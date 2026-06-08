@@ -27,9 +27,11 @@ class MurrtubeApp extends StatelessWidget {
     return MaterialApp(
       title: 'Murrtube',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF7C3AED)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF7C3AED),
+          brightness: Brightness.dark,
+        ),
         useMaterial3: true,
-        brightness: Brightness.dark,
       ),
       home: hasCookies ? const HomePage() : const CookieSetupPage(),
       routes: {
