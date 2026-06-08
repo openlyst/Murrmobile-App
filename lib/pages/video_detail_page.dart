@@ -5,6 +5,7 @@ import '../models/media.dart';
 import '../models/comment.dart';
 import '../models/playlist.dart';
 import '../services/murrtube_api.dart';
+import '../utils/app_preferences.dart';
 import '../widgets/video_card.dart';
 import 'profile_page.dart';
 
@@ -31,11 +32,18 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   bool _viewerCanLike = false;
   bool _viewerLiked = false;
   int _likesCount = 0;
+  bool _isMuted = false;
 
   @override
   void initState() {
     super.initState();
+    _loadMutePref();
     _load();
+  }
+
+  Future<void> _loadMutePref() async {
+    final muted = await AppPreferences.getMute();
+    if (mounted) setState(() => _isMuted = muted);
   }
 
   @override
@@ -146,7 +154,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
 
   void _initPlayer(String url) {
     _controller = VideoPlayerController.networkUrl(Uri.parse(url))
-      ..setVolume(1.0)
+      ..setVolume(_isMuted ? 0.0 : 1.0)
       ..setLooping(true)
       ..addListener(() {
         if (mounted) setState(() {});
@@ -157,6 +165,13 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
           setState(() {});
         }
       });
+  }
+
+  Future<void> _toggleMute() async {
+    final muted = !_isMuted;
+    setState(() => _isMuted = muted);
+    await AppPreferences.setMute(muted);
+    _controller?.setVolume(muted ? 0.0 : 1.0);
   }
 
   void _onDoubleTap(bool forward) {
@@ -531,6 +546,26 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                           child: Icon(
                             Icons.arrow_back_ios_new,
                             size: 18,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Mute button
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: GestureDetector(
+                        onTap: _toggleMute,
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            _isMuted ? Icons.volume_off : Icons.volume_up,
+                            size: 20,
                             color: Colors.white,
                           ),
                         ),
