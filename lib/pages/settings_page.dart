@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/murrtube_api.dart';
+import '../utils/cookie_loader.dart';
+import 'cookie_setup_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -57,6 +59,36 @@ class _SettingsPageState extends State<SettingsPage> {
                         : const CircleAvatar(child: Icon(Icons.person)),
                     title: Text(user['name'] ?? 'User'),
                     subtitle: Text(user['slug'] ?? ''),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.logout),
+                    title: const Text('Log Out'),
+                    onTap: () async {
+                      MurrtubeApi.clearCookies();
+                      await CookieLoader.clear();
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Logged out')),
+                        );
+                        _load();
+                      }
+                    },
+                  ),
+                  const Divider(),
+                ] else ...[
+                  ListTile(
+                    leading: const Icon(Icons.login),
+                    title: const Text('Log In'),
+                    subtitle: const Text('Login for uploads, comments, and notifications'),
+                    onTap: () async {
+                      final result = await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(builder: (_) => const CookieSetupPage()),
+                      );
+                      if (result == true && mounted) {
+                        _load();
+                      }
+                    },
                   ),
                   const Divider(),
                 ],

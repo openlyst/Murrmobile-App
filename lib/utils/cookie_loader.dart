@@ -27,4 +27,13 @@ class CookieLoader {
   static void set(String cookies) {
     _cached = cookies;
   }
+
+  static Future<void> clear() async {
+    _cached = null;
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File('${dir.path}/murrtube_cookies.txt');
+    if (await file.exists()) {
+      await file.delete();
+    }
+  }
 }

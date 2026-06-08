@@ -7,7 +7,6 @@ import 'pages/settings_page.dart';
 import 'pages/upload_page.dart';
 import 'pages/notifications_page.dart';
 import 'pages/about_page.dart';
-import 'pages/cookie_setup_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +22,6 @@ class MurrtubeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasCookies = MurrtubeApi.hasCookies;
     return MaterialApp(
       title: 'Murrtube',
       theme: ThemeData(
@@ -33,7 +31,7 @@ class MurrtubeApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: hasCookies ? const HomePage() : const CookieSetupPage(),
+      home: const HomePage(),
       routes: {
         '/search': (_) => const SearchPage(),
         '/settings': (_) => const SettingsPage(),

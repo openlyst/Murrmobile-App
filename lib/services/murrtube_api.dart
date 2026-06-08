@@ -39,6 +39,10 @@ class MurrtubeApi {
     _cookieString = cookies;
   }
 
+  static void clearCookies() {
+    _cookieString = null;
+  }
+
   static Map<String, String> get _headers => {
         'User-Agent':
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',

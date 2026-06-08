@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../services/murrtube_api.dart';
 import '../utils/cookie_loader.dart';
-import 'home_page.dart';
 
 class CookieSetupPage extends StatefulWidget {
   const CookieSetupPage({super.key});
@@ -33,19 +32,22 @@ class _CookieSetupPageState extends State<CookieSetupPage> {
   Future<void> _saveAndProceed() async {
     final cookies = _controller.text.trim();
     if (cookies.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your cookies')),
-      );
+      _continueAsGuest();
       return;
     }
     setState(() => _loading = true);
     MurrtubeApi.setCookies(cookies);
     await CookieLoader.save(cookies);
     if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
+      Navigator.of(context).pop(true);
+    }
+  }
+
+  void _continueAsGuest() {
+    MurrtubeApi.clearCookies();
+    CookieLoader.clear();
+    if (mounted) {
+      Navigator.of(context).pop(true);
     }
   }
 
@@ -85,6 +87,14 @@ class _CookieSetupPageState extends State<CookieSetupPage> {
                 child: _loading
                     ? const CircularProgressIndicator()
                     : const Text('Connect'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: _continueAsGuest,
+                child: const Text('Continue as Guest'),
               ),
             ),
           ],
