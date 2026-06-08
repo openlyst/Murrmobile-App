@@ -37,8 +37,18 @@ class _UploadPageState extends State<UploadPage> {
 
   @override
   Widget build(BuildContext context) {
-    final visibilities = _props?['visibilities'] as List<dynamic>? ?? [];
-    final popularTags = _props?['popular_tags'] as List<dynamic>? ?? [];
+    final rawVisibilities = _props?['visibilities'] as List<dynamic>? ?? [];
+    final visibilities = rawVisibilities.map((v) {
+      if (v is String) return {'value': v, 'label': v[0].toUpperCase() + v.substring(1)};
+      if (v is Map) return Map<String, dynamic>.from(v);
+      return {'value': v.toString(), 'label': v.toString()};
+    }).toList();
+    final rawPopularTags = _props?['popular_tags'] as List<dynamic>? ?? [];
+    final popularTags = rawPopularTags.map((t) {
+      if (t is String) return {'name': t};
+      if (t is Map) return Map<String, dynamic>.from(t);
+      return {'name': t.toString()};
+    }).toList();
 
     return Scaffold(
       body: _loading
