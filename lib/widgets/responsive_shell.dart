@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/murrtube_api.dart';
 import '../theme/app_theme.dart';
 import '../pages/home_page.dart';
 import '../pages/search_page.dart';
@@ -30,44 +31,66 @@ class ResponsiveShell extends StatefulWidget {
 
 class _ResponsiveShellState extends State<ResponsiveShell> {
   late int _selectedIndex;
+  bool _wasLoggedIn = false;
 
-  final List<NavItem> _items = const [
-    NavItem(
-      label: 'Home',
-      icon: Icons.home_outlined,
-      activeIcon: Icons.home_rounded,
-      page: HomePage(),
-    ),
-    NavItem(
-      label: 'Search',
-      icon: Icons.search_outlined,
-      activeIcon: Icons.search_rounded,
-      page: SearchPage(),
-    ),
-    NavItem(
-      label: 'Upload',
-      icon: Icons.add_circle_outline,
-      activeIcon: Icons.add_circle_rounded,
-      page: UploadPage(),
-    ),
-    NavItem(
-      label: 'Activity',
-      icon: Icons.notifications_outlined,
-      activeIcon: Icons.notifications_rounded,
-      page: NotificationsPage(),
-    ),
-    NavItem(
+  List<NavItem> get _items {
+    final base = <NavItem>[
+      const NavItem(
+        label: 'Home',
+        icon: Icons.home_outlined,
+        activeIcon: Icons.home_rounded,
+        page: HomePage(),
+      ),
+      const NavItem(
+        label: 'Search',
+        icon: Icons.search_outlined,
+        activeIcon: Icons.search_rounded,
+        page: SearchPage(),
+      ),
+    ];
+    if (MurrtubeApi.hasCookies) {
+      base.addAll(const [
+        NavItem(
+          label: 'Upload',
+          icon: Icons.add_circle_outline,
+          activeIcon: Icons.add_circle_rounded,
+          page: UploadPage(),
+        ),
+        NavItem(
+          label: 'Activity',
+          icon: Icons.notifications_outlined,
+          activeIcon: Icons.notifications_rounded,
+          page: NotificationsPage(),
+        ),
+      ]);
+    }
+    base.add(const NavItem(
       label: 'Settings',
       icon: Icons.settings_outlined,
       activeIcon: Icons.settings_rounded,
       page: SettingsPage(),
-    ),
-  ];
+    ));
+    return base;
+  }
 
   @override
   void initState() {
     super.initState();
     _selectedIndex = widget.initialIndex;
+    _wasLoggedIn = MurrtubeApi.hasCookies;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final nowLoggedIn = MurrtubeApi.hasCookies;
+    if (nowLoggedIn != _wasLoggedIn) {
+      _wasLoggedIn = nowLoggedIn;
+      if (_selectedIndex >= _items.length) {
+        _selectedIndex = 0;
+      }
+      setState(() {});
+    }
   }
 
   void _onItemTapped(int index) {
