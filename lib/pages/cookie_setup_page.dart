@@ -98,7 +98,7 @@ class _CookieSetupPageState extends State<CookieSetupPage> {
             ),
             const SizedBox(height: 20),
             const Text(
-              'Welcome to Murrtube',
+              'Welcome to Murrmobile',
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w800,

@@ -224,7 +224,7 @@ class _DesktopLayout extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       const Text(
-                        'Murrtube',
+                        'Murrmobile',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
