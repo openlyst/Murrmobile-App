@@ -70,9 +70,6 @@ flutter build linux --release
 
 # Windows
 flutter build windows --release
-
-# Web
-flutter build web --release
 ```
 
 > [!NOTE]
