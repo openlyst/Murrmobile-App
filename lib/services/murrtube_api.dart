@@ -579,22 +579,19 @@ class MurrtubeApi {
     }
   }
 
-  static Future<void> subscribeToUser(String userId) async {
+  static Future<void> subscribeToUser(String slug) async {
     final token = await _fetchCsrfToken();
     final response = await http.post(
-      Uri.parse('$baseUrl/subscriptions'),
+      Uri.parse('$baseUrl/users/$slug/follow'),
       headers: {
         'User-Agent':
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
         'Accept': 'application/json',
-        'Content-Type': 'application/x-www-form-urlencoded',
         'Referer': baseUrl,
         'Origin': baseUrl,
-        'X-Requested-With': 'XMLHttpRequest',
         'x-csrf-token': token,
         if (_cookieString != null) 'Cookie': _cookieString!,
       },
-      body: {'subscription[subscribed_to_id]': userId},
     );
     _updateCookiesFromResponse(response);
     debugPrint('subscribeToUser status: ${response.statusCode}');
@@ -603,17 +600,16 @@ class MurrtubeApi {
     }
   }
 
-  static Future<void> unsubscribeFromUser(String userId) async {
+  static Future<void> unsubscribeFromUser(String slug) async {
     final token = await _fetchCsrfToken();
-    final response = await http.delete(
-      Uri.parse('$baseUrl/subscriptions/$userId'),
+    final response = await http.post(
+      Uri.parse('$baseUrl/users/$slug/unfollow'),
       headers: {
         'User-Agent':
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
         'Accept': 'application/json',
         'Referer': baseUrl,
         'Origin': baseUrl,
-        'X-Requested-With': 'XMLHttpRequest',
         'x-csrf-token': token,
         if (_cookieString != null) 'Cookie': _cookieString!,
       },
