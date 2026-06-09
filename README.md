@@ -72,6 +72,18 @@ flutter build linux --release
 flutter build windows --release
 ```
 
+## Downloads
+
+Pre-built binaries for all platforms are available on the [releases page](https://github.com/openlyst/Murrmobile-App-builds/releases).
+
+| Platform | Download |
+|----------|----------|
+| Android | APK / AAB |
+| iOS | Unsigned IPA |
+| Linux | ZIP (x64) |
+| macOS | Unsigned ZIP |
+| Windows | ZIP (x64) |
+
 > [!NOTE]
 > This is an unofficial client. It is not affiliated with or endorsed by the operators of murrtube.net. The app relies on the website's internal Inertia.js protocol, which may change without notice.
 
