@@ -24,6 +24,7 @@ class _ProfilePageState extends State<ProfilePage>
   List<Media> _media = [];
   List<Playlist> _playlists = [];
   bool _isSubscribed = false;
+  bool _isBlocked = false;
   bool _isSelf = false;
   int? _subscribersCount;
   int? _subscriptionsCount;
@@ -62,6 +63,18 @@ class _ProfilePageState extends State<ProfilePage>
   }
 
   @override
+  void didUpdateWidget(covariant ProfilePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.slug != widget.slug) {
+      _currentPage = 1;
+      _hasMore = true;
+      _media = [];
+      _playlists = [];
+      _load();
+    }
+  }
+
+  @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
@@ -82,6 +95,7 @@ class _ProfilePageState extends State<ProfilePage>
           _media = result.media;
         }
         _isSubscribed = result.isSubscribed;
+        _isBlocked = result.isBlocked;
         _isSelf = result.isSelf;
         _subscribersCount = result.subscribersCount;
         _subscriptionsCount = result.subscriptionsCount;
@@ -145,6 +159,27 @@ class _ProfilePageState extends State<ProfilePage>
         _isSubscribed = wasSubscribed;
         _subscribersCount = (_subscribersCount ?? 0) + (wasSubscribed ? 1 : -1);
       });
+    }
+  }
+
+  Future<void> _toggleBlock() async {
+    if (_user == null || _isSelf || !MurrtubeApi.isAuthenticated) return;
+    final wasBlocked = _isBlocked;
+    setState(() => _isBlocked = !wasBlocked);
+    try {
+      if (wasBlocked) {
+        await MurrtubeApi.unblockUser(_user!.slug);
+      } else {
+        await MurrtubeApi.blockUser(_user!.slug);
+      }
+    } catch (e) {
+      debugPrint('Toggle block error: $e');
+      setState(() => _isBlocked = wasBlocked);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update block status')),
+        );
+      }
     }
   }
 
@@ -244,37 +279,40 @@ class _ProfilePageState extends State<ProfilePage>
     }
 
     return Scaffold(
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            SliverToBoxAdapter(
-              child: _buildHeader(context, user, mutedColor, colorScheme),
-            ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: _TabBarDelegate(
-                TabBar(
-                  controller: _tabController,
-                  indicatorColor: colorScheme.primary,
-                  labelColor: colorScheme.primary,
-                  unselectedLabelColor: mutedColor,
-                  tabs: [
-                    Tab(text: 'Videos ${_tabBadge('videos')}'),
-                    Tab(text: 'Likes ${_tabBadge('likes')}'),
-                    Tab(text: 'Playlists ${_tabBadge('playlists')}'),
-                  ],
+      body: RefreshIndicator(
+        onRefresh: _load,
+        child: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              SliverToBoxAdapter(
+                child: _buildHeader(context, user, mutedColor, colorScheme),
+              ),
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _TabBarDelegate(
+                  TabBar(
+                    controller: _tabController,
+                    indicatorColor: colorScheme.primary,
+                    labelColor: colorScheme.primary,
+                    unselectedLabelColor: mutedColor,
+                    tabs: [
+                      Tab(text: 'Videos ${_tabBadge('videos')}'),
+                      Tab(text: 'Likes ${_tabBadge('likes')}'),
+                      Tab(text: 'Playlists ${_tabBadge('playlists')}'),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ];
-        },
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildVideosTab(context, colorScheme, mutedColor),
-            _buildLikesTab(context, colorScheme, mutedColor),
-            _buildPlaylistsTab(context, colorScheme, mutedColor),
-          ],
+            ];
+          },
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildVideosTab(context, colorScheme, mutedColor),
+              _buildLikesTab(context, colorScheme, mutedColor),
+              _buildPlaylistsTab(context, colorScheme, mutedColor),
+            ],
+          ),
         ),
       ),
     );
@@ -450,6 +488,36 @@ class _ProfilePageState extends State<ProfilePage>
                 ),
               ),
             ),
+          if (!_isSelf && MurrtubeApi.isAuthenticated) ...[
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: _toggleBlock,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _isBlocked
+                        ? colorScheme.onSurface
+                        : colorScheme.error,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    side: BorderSide(
+                      color: _isBlocked
+                          ? Theme.of(context).dividerColor.withValues(alpha: 0.3)
+                          : colorScheme.error,
+                    ),
+                  ),
+                  child: Text(
+                    _isBlocked ? 'Unblock' : 'Block',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+            ),
+          ],
           if (_telegramUrl != null && _telegramUrl!.isNotEmpty) ...[
             const SizedBox(height: 10),
             GestureDetector(

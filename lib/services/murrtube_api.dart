@@ -419,6 +419,7 @@ class MurrtubeApi {
     Pagination pagination,
     List<Playlist> playlists,
     bool isSubscribed,
+    bool isBlocked,
     bool isSelf,
     User? currentUser,
     int? subscribersCount,
@@ -478,6 +479,7 @@ class MurrtubeApi {
       pagination: pagination,
       playlists: playlists,
       isSubscribed: props['is_subscribed'] as bool? ?? false,
+      isBlocked: props['is_blocked'] as bool? ?? false,
       isSelf: isSelf,
       currentUser: currentUser,
       subscribersCount: tabCounts['subscribers'] ?? profileRaw['subscribers_count'] as int?,
@@ -491,6 +493,50 @@ class MurrtubeApi {
       patreonUrl: profileRaw['patreon'] as String?,
       kofiUrl: profileRaw['kofi'] as String?,
     );
+  }
+
+  static Future<void> blockUser(String slug) async {
+    final token = await _fetchCsrfToken();
+    final response = await http.put(
+      Uri.parse('$baseUrl/users/$slug/block'),
+      headers: {
+        'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Referer': baseUrl,
+        'Origin': baseUrl,
+        'X-Requested-With': 'XMLHttpRequest',
+        'x-csrf-token': token,
+        if (_cookieString != null) 'Cookie': _cookieString!,
+      },
+    );
+    _updateCookiesFromResponse(response);
+    debugPrint('blockUser status: ${response.statusCode}');
+    if (response.statusCode != 200) {
+      throw HttpException('HTTP ${response.statusCode}');
+    }
+  }
+
+  static Future<void> unblockUser(String slug) async {
+    final token = await _fetchCsrfToken();
+    final response = await http.put(
+      Uri.parse('$baseUrl/users/$slug/unblock'),
+      headers: {
+        'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Referer': baseUrl,
+        'Origin': baseUrl,
+        'X-Requested-With': 'XMLHttpRequest',
+        'x-csrf-token': token,
+        if (_cookieString != null) 'Cookie': _cookieString!,
+      },
+    );
+    _updateCookiesFromResponse(response);
+    debugPrint('unblockUser status: ${response.statusCode}');
+    if (response.statusCode != 200) {
+      throw HttpException('HTTP ${response.statusCode}');
+    }
   }
 
   static Future<void> subscribeToUser(String userId) async {
