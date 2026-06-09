@@ -242,6 +242,48 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     return '${two(minutes)}:${two(seconds)}';
   }
 
+  Future<void> _deleteComment(String commentId) async {
+    try {
+      await MurrtubeApi.deleteComment(commentId);
+      final result = await MurrtubeApi.getVideo(widget.shortCode);
+      if (mounted) {
+        setState(() {
+          _comments = result.comments;
+        });
+      }
+    } catch (e) {
+      debugPrint('_deleteComment error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to delete comment')),
+        );
+      }
+    }
+  }
+
+  Future<void> _replyToComment(String commentId, String body) async {
+    try {
+      await MurrtubeApi.replyToComment(
+        mediumId: _medium!.id,
+        parentId: commentId,
+        body: body,
+      );
+      final result = await MurrtubeApi.getVideo(widget.shortCode);
+      if (mounted) {
+        setState(() {
+          _comments = result.comments;
+        });
+      }
+    } catch (e) {
+      debugPrint('_replyToComment error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to post reply')),
+        );
+      }
+    }
+  }
+
   Future<void> _postComment() async {
     final text = _commentController.text.trim();
     if (text.isEmpty || _medium == null) return;
@@ -1086,7 +1128,12 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
                       children: _comments
-                          .map((c) => _CommentTile(comment: c))
+                          .map((c) => _CommentTile(
+                                comment: c,
+                                viewerCanComment: _viewerCanComment,
+                                onDelete: _viewerCanComment ? _deleteComment : null,
+                                onReply: _viewerCanComment ? _replyToComment : null,
+                              ))
                           .toList(),
                     ),
                   ),
@@ -1447,134 +1494,326 @@ class _VisibilityChip extends StatelessWidget {
   }
 }
 
-class _CommentTile extends StatelessWidget {
+class _CommentTile extends StatefulWidget {
   final Comment comment;
+  final bool viewerCanComment;
+  final Future<void> Function(String commentId)? onDelete;
+  final Future<void> Function(String commentId, String body)? onReply;
 
-  const _CommentTile({required this.comment});
+  const _CommentTile({
+    required this.comment,
+    this.viewerCanComment = false,
+    this.onDelete,
+    this.onReply,
+  });
+
+  @override
+  State<_CommentTile> createState() => _CommentTileState();
+}
+
+class _CommentTileState extends State<_CommentTile> {
+  bool _showReplyInput = false;
+  final _replyController = TextEditingController();
+  bool _postingReply = false;
+
+  @override
+  void dispose() {
+    _replyController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitReply() async {
+    final text = _replyController.text.trim();
+    if (text.isEmpty || widget.onReply == null) return;
+    setState(() => _postingReply = true);
+    try {
+      await widget.onReply!(widget.comment.id, text);
+      _replyController.clear();
+      if (mounted) setState(() => _showReplyInput = false);
+    } catch (e) {
+      debugPrint('reply error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to post reply')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _postingReply = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final comment = widget.comment;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
+          color: theme.dividerColor.withValues(alpha: 0.3),
         ),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ProfilePage(slug: comment.user.slug),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ProfilePage(slug: comment.user.slug),
+                    ),
+                  );
+                },
+                child: ClipOval(
+                  child: comment.user.avatarUrl != null
+                      ? CachedNetworkImage(
+                          imageUrl: comment.user.avatarUrl!,
+                          width: 32,
+                          height: 32,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => Container(
+                            color: colorScheme.surfaceContainerHighest,
+                          ),
+                          errorWidget: (_, __, ___) => Icon(
+                            Icons.person,
+                            size: 16,
+                            color: mutedColor,
+                          ),
+                        )
+                      : Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            Icons.person,
+                            size: 16,
+                            color: mutedColor,
+                          ),
+                        ),
                 ),
-              );
-            },
-            child: ClipOval(
-              child: comment.user.avatarUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: comment.user.avatarUrl!,
-                      width: 32,
-                      height: 32,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      ),
-                      errorWidget: (_, __, ___) => Icon(
-                        Icons.person,
-                        size: 16,
-                        color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
-                      ),
-                    )
-                  : Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Icon(
-                        Icons.person,
-                        size: 16,
-                        color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
-                      ),
-                    ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ProfilePage(slug: comment.user.slug),
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ProfilePage(slug: comment.user.slug),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            comment.user.name,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                              color: colorScheme.onSurface,
+                            ),
                           ),
-                        );
-                      },
-                      child: Text(
-                        comment.user.name,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                          color: Theme.of(context).colorScheme.onSurface,
                         ),
+                        if (comment.isCreator)
+                          Container(
+                            margin: const EdgeInsets.only(left: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'CREATOR',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                color: colorScheme.primary,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      comment.body,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: mutedColor,
+                        height: 1.4,
                       ),
                     ),
-                    if (comment.isCreator)
-                      Container(
-                        margin: const EdgeInsets.only(left: 6),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'CREATOR',
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            color: Theme.of(context).colorScheme.primary,
-                            letterSpacing: 0.5,
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        if (widget.viewerCanComment)
+                          GestureDetector(
+                            onTap: () => setState(() => _showReplyInput = !_showReplyInput),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.reply,
+                                  size: 14,
+                                  color: mutedColor,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Reply',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: mutedColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
+                        if (widget.viewerCanComment && comment.isOwner)
+                          const SizedBox(width: 16),
+                        if (comment.isOwner && widget.onDelete != null)
+                          GestureDetector(
+                            onTap: () async {
+                              final confirmed = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  title: const Text('Delete comment?'),
+                                  content: const Text('This cannot be undone.'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx, false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx, true),
+                                      child: const Text('Delete'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirmed == true) {
+                                try {
+                                  await widget.onDelete!(comment.id);
+                                } catch (e) {
+                                  debugPrint('delete error: $e');
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Failed to delete comment')),
+                                    );
+                                  }
+                                }
+                              }
+                            },
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.delete_outline,
+                                  size: 14,
+                                  color: mutedColor,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Delete',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: mutedColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                    if (_showReplyInput)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _replyController,
+                                decoration: InputDecoration(
+                                  hintText: 'Write a reply...',
+                                  filled: true,
+                                  fillColor: colorScheme.surfaceContainerHighest,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                ),
+                                textInputAction: TextInputAction.send,
+                                onSubmitted: (_) => _submitReply(),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            _postingReply
+                                ? SizedBox(
+                                    width: 32,
+                                    height: 32,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: colorScheme.primary,
+                                    ),
+                                  )
+                                : GestureDetector(
+                                    onTap: _submitReply,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: colorScheme.primary,
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: const Icon(
+                                        Icons.send,
+                                        size: 16,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                          ],
+                        ),
+                      ),
+                    if (comment.replies.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8, top: 8),
+                        child: Column(
+                          children: comment.replies
+                              .map((r) => _CommentTile(
+                                    comment: r,
+                                    viewerCanComment: widget.viewerCanComment,
+                                    onDelete: widget.onDelete,
+                                    onReply: widget.onReply,
+                                  ))
+                              .toList(),
                         ),
                       ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  comment.body,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
-                    height: 1.4,
-                  ),
-                ),
-                if (comment.replies.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8, top: 8),
-                    child: Column(
-                      children: comment.replies
-                          .map((r) => _CommentTile(comment: r))
-                          .toList(),
-                    ),
-                  ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
