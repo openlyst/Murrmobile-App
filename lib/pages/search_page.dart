@@ -10,7 +10,9 @@ import 'video_detail_page.dart';
 import 'profile_page.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+  final String? initialQuery;
+
+  const SearchPage({super.key, this.initialQuery});
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -106,6 +108,17 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.initialQuery != null && widget.initialQuery!.isNotEmpty) {
+      _controller.text = widget.initialQuery!;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _search();
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _suggestionDebounce?.cancel();
     super.dispose();
@@ -127,6 +140,26 @@ class _SearchPageState extends State<SearchPage> {
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
               child: Row(
                 children: [
+                  if (Navigator.canPop(context))
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: theme.dividerColor.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.arrow_back,
+                          size: 20,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
