@@ -622,6 +622,33 @@ class MurrtubeApi {
     }
   }
 
+  static Future<void> postComment({required String mediumId, required String body}) async {
+    final token = await _fetchCsrfToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl/comments'),
+      headers: {
+        'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Referer': baseUrl,
+        'Origin': baseUrl,
+        'X-Requested-With': 'XMLHttpRequest',
+        'x-csrf-token': token,
+        if (_cookieString != null) 'Cookie': _cookieString!,
+      },
+      body: {
+        'comment[medium_id]': mediumId,
+        'comment[body]': body,
+      },
+    );
+    _updateCookiesFromResponse(response);
+    debugPrint('postComment status: ${response.statusCode}');
+    if (response.statusCode != 200) {
+      throw HttpException('HTTP ${response.statusCode}');
+    }
+  }
+
   static Future<void> unlikeVideo(String mediumId) async {
     final token = await _fetchCsrfToken();
     final response = await http.delete(
