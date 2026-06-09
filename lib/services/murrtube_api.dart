@@ -396,6 +396,46 @@ class MurrtubeApi {
     );
   }
 
+  // Search Suggestions
+  static Future<({
+    String? query,
+    List<({String slug, String name, String? avatarUrl})> users,
+    List<({String name, String category, int count})> tags,
+  })> searchSuggest(String q) async {
+    final query = Uri.encodeComponent(q);
+    final response = await http.get(
+      Uri.parse('$baseUrl/search/suggest?q=$query'),
+      headers: {
+        'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Referer': baseUrl,
+        if (_cookieString != null) 'Cookie': _cookieString!,
+      },
+    );
+    _updateCookiesFromResponse(response);
+    final json = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    final users = (json['users'] as List<dynamic>? ?? [])
+        .map((u) => (
+              slug: u['slug'] as String,
+              name: u['name'] as String,
+              avatarUrl: u['avatar_url'] as String?,
+            ))
+        .toList();
+    final tags = (json['tags'] as List<dynamic>? ?? [])
+        .map((t) => (
+              name: t['name'] as String,
+              category: t['category'] as String,
+              count: t['count'] as int,
+            ))
+        .toList();
+    return (
+      query: json['query'] as String?,
+      users: users,
+      tags: tags,
+    );
+  }
+
   // Notifications
   static Future<({
     List<NotificationItem> items,
