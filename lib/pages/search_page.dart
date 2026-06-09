@@ -21,6 +21,8 @@ class _SearchPageState extends State<SearchPage> {
   List<User> _users = [];
   List<Tag> _tagMatches = [];
   bool _loading = false;
+  bool _hasMore = true;
+  int _currentPage = 1;
   String? _lastQuery;
 
   Future<void> _search() async {
@@ -29,16 +31,37 @@ class _SearchPageState extends State<SearchPage> {
     setState(() {
       _loading = true;
       _lastQuery = query;
+      _currentPage = 1;
+      _hasMore = true;
     });
     try {
-      final result = await MurrtubeApi.search(query: query);
+      final result = await MurrtubeApi.search(query: query, page: _currentPage);
       setState(() {
         _media = result.media;
         _users = result.users;
         _tagMatches = result.tagMatches;
+        _hasMore = result.pagination.next != null;
       });
     } catch (e) {
       debugPrint('SearchPage error: $e');
+    } finally {
+      setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (_loading || !_hasMore || _lastQuery == null) return;
+    setState(() => _loading = true);
+    try {
+      final nextPage = _currentPage + 1;
+      final result = await MurrtubeApi.search(query: _lastQuery!, page: nextPage);
+      setState(() {
+        _media.addAll(result.media);
+        _currentPage = nextPage;
+        _hasMore = result.pagination.next != null;
+      });
+    } catch (e) {
+      debugPrint('SearchPage loadMore error: $e');
     } finally {
       setState(() => _loading = false);
     }
@@ -101,6 +124,8 @@ class _SearchPageState extends State<SearchPage> {
                                       _users = [];
                                       _tagMatches = [];
                                       _lastQuery = null;
+                                      _hasMore = true;
+                                      _currentPage = 1;
                                     });
                                   },
                                 )
@@ -217,20 +242,37 @@ class _SearchPageState extends State<SearchPage> {
                     mainAxisSpacing: 16,
                   ),
                   delegate: SliverChildBuilderDelegate(
-                    (context, index) => VideoCard(
-                      media: _media[index],
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => VideoDetailPage(
-                              shortCode: _media[index].shortCode,
+                    (context, index) {
+                      if (index >= _media.length) {
+                        if (_hasMore) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) => _loadMore());
+                        }
+                        return Center(
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.primary,
                             ),
                           ),
                         );
-                      },
-                    ),
-                    childCount: _media.length,
+                      }
+                      return VideoCard(
+                        media: _media[index],
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => VideoDetailPage(
+                                shortCode: _media[index].shortCode,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    childCount: _media.length + (_hasMore ? 1 : 0),
                   ),
                 ),
               ),
