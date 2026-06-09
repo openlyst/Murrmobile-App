@@ -8,6 +8,7 @@ import '../models/playlist.dart';
 import '../services/murrtube_api.dart';
 import '../utils/app_preferences.dart';
 import '../widgets/video_card.dart';
+import '../widgets/linkify_text.dart';
 import 'profile_page.dart';
 
 class VideoDetailPage extends StatefulWidget {
@@ -984,8 +985,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                       if (medium.description != null &&
                           medium.description!.isNotEmpty) ...[
                         const SizedBox(height: 16),
-                        Text(
-                          medium.description!,
+                        LinkifyText(
+                          text: medium.description!,
                           style: TextStyle(
                             fontSize: 14,
                             color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
@@ -1654,8 +1655,8 @@ class _CommentTileState extends State<_CommentTile> {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      comment.body,
+                    LinkifyText(
+                      text: comment.body,
                       style: TextStyle(
                         fontSize: 13,
                         color: mutedColor,
