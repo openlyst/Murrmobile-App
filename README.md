@@ -28,40 +28,6 @@ The app supports iOS, Android, macOS, Linux, Windows, and Web from a single code
 - **Responsive Layout** — Adaptive navigation rail on desktop/tablet, bottom nav on mobile
 - **Cross-Platform** — One codebase targeting Android, iOS, macOS, Linux, Windows, and Web
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| Framework | [Flutter](https://flutter.dev) |
-| State Management | [Provider](https://pub.dev/packages/provider) |
-| HTTP / API | `dart:http` with cookie jar and CSRF token handling |
-| Video Playback | [`video_player`](https://pub.dev/packages/video_player) |
-| Image Caching | [`cached_network_image`](https://pub.dev/packages/cached_network_image) |
-| Local Storage | [`shared_preferences`](https://pub.dev/packages/shared_preferences) |
-| External Links | [`url_launcher`](https://pub.dev/packages/url_launcher) |
-| Sharing | [`share_plus`](https://pub.dev/packages/share_plus) |
-| Wakelock | [`wakelock_plus`](https://pub.dev/packages/wakelock_plus) |
-
-## Architecture
-
-Murrmobile communicates with murrtube.net by mimicking the website's Inertia.js requests. It parses server-rendered JSON page props to extract data for feeds, videos, comments, user profiles, and more. Authentication is handled via session cookies and CSRF tokens, just like the web client.
-
-```
-lib/
-├── main.dart                 # App entry point, theme provider setup
-├── models/                   # Data models (Media, User, Comment, etc.)
-├── pages/                    # UI screens (Home, Search, Video, Profile, etc.)
-├── providers/                # State providers (ThemeProvider)
-├── services/
-│   └── murrtube_api.dart     # Inertia.js API client, all network logic
-├── theme/
-│   └── app_theme.dart        # Dark, light, and AMOLED theme definitions
-├── utils/
-│   ├── app_preferences.dart  # Shared preferences wrapper
-│   └── cookie_loader.dart    # Persistent cookie storage
-└── widgets/                  # Reusable UI components (VideoCard, ResponsiveShell, etc.)
-```
-
 ## Getting Started
 
 ### Prerequisites
