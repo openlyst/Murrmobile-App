@@ -77,3 +77,5 @@ flutter build web --release
 
 > [!NOTE]
 > This is an unofficial client. It is not affiliated with or endorsed by the operators of murrtube.net. The app relies on the website's internal Inertia.js protocol, which may change without notice.
+
+> We hope to one day became a part of the murrtube stack but for now we are just a fan app.
