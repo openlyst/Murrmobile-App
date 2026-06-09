@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
@@ -38,6 +39,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   int _likesCount = 0;
   bool _isMuted = false;
   bool _isFullscreen = false;
+  bool _showFullscreenUI = true;
+  Timer? _fullscreenUITimer;
   final _commentController = TextEditingController();
   bool _postingComment = false;
 
@@ -55,6 +58,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
 
   @override
   void dispose() {
+    _fullscreenUITimer?.cancel();
     _controller?.dispose();
     _commentController.dispose();
     super.dispose();
@@ -183,9 +187,31 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     _controller?.setVolume(muted ? 0.0 : 1.0);
   }
 
+  void _startFullscreenUITimer() {
+    _fullscreenUITimer?.cancel();
+    _fullscreenUITimer = Timer(const Duration(seconds: 3), () {
+      if (mounted && _isFullscreen) {
+        setState(() => _showFullscreenUI = false);
+      }
+    });
+  }
+
+  void _toggleFullscreenUI() {
+    if (!_isFullscreen) return;
+    setState(() => _showFullscreenUI = !_showFullscreenUI);
+    if (_showFullscreenUI) {
+      _startFullscreenUITimer();
+    }
+  }
+
   void _toggleFullscreen() {
-    setState(() => _isFullscreen = !_isFullscreen);
-    if (_isFullscreen) {
+    final entering = !_isFullscreen;
+    setState(() {
+      _isFullscreen = entering;
+      _showFullscreenUI = true;
+    });
+    if (entering) {
+      _startFullscreenUITimer();
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       final isPortrait = _controller != null &&
           _controller!.value.isInitialized &&
@@ -202,6 +228,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
         ]);
       }
     } else {
+      _fullscreenUITimer?.cancel();
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,
@@ -392,100 +419,275 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                     ),
                   ),
                 ),
-              // Tap to play/pause
-              if (_controller != null && _controller!.value.isInitialized)
-                Positioned.fill(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _controller!.value.isPlaying
-                            ? _controller!.pause()
-                            : _controller!.play();
-                      });
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Center(
-                        child: AnimatedOpacity(
-                          opacity: _controller!.value.isPlaying ? 0 : 1,
-                          duration: const Duration(milliseconds: 200),
+              // Tap overlay: toggles UI
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: _toggleFullscreenUI,
+                  behavior: HitTestBehavior.translucent,
+                  child: Container(color: Colors.transparent),
+                ),
+              ),
+              // Top controls
+              AnimatedOpacity(
+                opacity: _showFullscreenUI ? 1 : 0,
+                duration: const Duration(milliseconds: 200),
+                child: IgnorePointer(
+                  ignoring: !_showFullscreenUI,
+                  child: Stack(
+                    children: [
+                      // Back button
+                      Positioned(
+                        top: 12,
+                        left: 12,
+                        child: GestureDetector(
+                          onTap: () => _toggleFullscreen(),
                           child: Container(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.6),
-                              borderRadius: BorderRadius.circular(50),
+                              color: Colors.black.withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Icon(
-                              Icons.play_arrow_rounded,
-                              size: 40,
+                              Icons.arrow_back_ios_new,
+                              size: 18,
                               color: Colors.white,
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                ),
-              // Back button
-              Positioned(
-                top: 12,
-                left: 12,
-                child: GestureDetector(
-                  onTap: () => _toggleFullscreen(),
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back_ios_new,
-                      size: 18,
-                      color: Colors.white,
-                    ),
+                      // Mute button
+                      Positioned(
+                        top: 12,
+                        right: 60,
+                        child: GestureDetector(
+                          onTap: _toggleMute,
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              _isMuted ? Icons.volume_off : Icons.volume_up,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Exit fullscreen button
+                      Positioned(
+                        top: 12,
+                        right: 12,
+                        child: GestureDetector(
+                          onTap: _toggleFullscreen,
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(
+                              Icons.fullscreen_exit,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Center play/pause button
+                      Center(
+                        child: GestureDetector(
+                          onTap: () {
+                            if (_controller != null && _controller!.value.isInitialized) {
+                              setState(() {
+                                _controller!.value.isPlaying
+                                    ? _controller!.pause()
+                                    : _controller!.play();
+                              });
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            child: Icon(
+                              (_controller != null && _controller!.value.isInitialized && _controller!.value.isPlaying)
+                                  ? Icons.pause_rounded
+                                  : Icons.play_arrow_rounded,
+                              size: 48,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              // Mute button
-              Positioned(
-                top: 12,
-                right: 60,
-                child: GestureDetector(
-                  onTap: _toggleMute,
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      _isMuted ? Icons.volume_off : Icons.volume_up,
-                      size: 20,
-                      color: Colors.white,
+              // Bottom timeline
+              if (_controller != null && _controller!.value.isInitialized)
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: IgnorePointer(
+                    ignoring: !_showFullscreenUI,
+                    child: AnimatedOpacity(
+                      opacity: _showFullscreenUI ? 1 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(0, 16, 0, 10),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.6),
+                            ],
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final barWidth = constraints.maxWidth;
+                                void seekToFraction(double fraction) {
+                                  final dur = _controller!.value.duration;
+                                  _controller!.seekTo(
+                                    Duration(
+                                      milliseconds: (fraction.clamp(0.0, 1.0) * dur.inMilliseconds).round(),
+                                    ),
+                                  );
+                                }
+
+                                final progress = _controller!.value.duration.inMilliseconds > 0
+                                    ? _controller!.value.position.inMilliseconds /
+                                        _controller!.value.duration.inMilliseconds
+                                    : 0.0;
+
+                                final currentFraction = _isDraggingTimeline ? _dragProgress : progress;
+
+                                return GestureDetector(
+                                  behavior: HitTestBehavior.translucent,
+                                  onTapDown: (details) {
+                                    final fraction = details.localPosition.dx / barWidth;
+                                    seekToFraction(fraction);
+                                  },
+                                  onHorizontalDragStart: (_) {
+                                    setState(() => _isDraggingTimeline = true);
+                                  },
+                                  onHorizontalDragUpdate: (details) {
+                                    final fraction = details.localPosition.dx / barWidth;
+                                    setState(() => _dragProgress = fraction.clamp(0.0, 1.0));
+                                  },
+                                  onHorizontalDragEnd: (_) {
+                                    seekToFraction(_dragProgress);
+                                    setState(() => _isDraggingTimeline = false);
+                                  },
+                                  onHorizontalDragCancel: () {
+                                    setState(() => _isDraggingTimeline = false);
+                                  },
+                                  child: Container(
+                                    height: 32,
+                                    alignment: Alignment.center,
+                                    child: Stack(
+                                      alignment: Alignment.centerLeft,
+                                      children: [
+                                        Container(
+                                          height: 4,
+                                          color: Colors.white.withValues(alpha: 0.25),
+                                        ),
+                                        FractionallySizedBox(
+                                          alignment: Alignment.centerLeft,
+                                          widthFactor: currentFraction,
+                                          child: Container(
+                                            height: 4,
+                                            color: Theme.of(context).colorScheme.primary,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          left: (currentFraction * barWidth - 8).clamp(0.0, barWidth - 16),
+                                          child: AnimatedContainer(
+                                            duration: const Duration(milliseconds: 150),
+                                            curve: Curves.easeOut,
+                                            width: _isDraggingTimeline ? 16 : 12,
+                                            height: _isDraggingTimeline ? 16 : 12,
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              shape: BoxShape.circle,
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+                                                  blurRadius: 6,
+                                                  spreadRadius: 1,
+                                                ),
+                                                BoxShadow(
+                                                  color: Colors.black.withValues(alpha: 0.3),
+                                                  blurRadius: 2,
+                                                  offset: const Offset(0, 1),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Center(
+                                              child: Container(
+                                                width: 6,
+                                                height: 6,
+                                                decoration: BoxDecoration(
+                                                  color: Theme.of(context).colorScheme.primary,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    _formatDuration(
+                                      _isDraggingTimeline
+                                          ? Duration(
+                                              milliseconds: (_dragProgress *
+                                                      _controller!.value.duration.inMilliseconds)
+                                                  .round(),
+                                            )
+                                          : _controller!.value.position,
+                                    ),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Text(
+                                    _formatDuration(_controller!.value.duration),
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              // Exit fullscreen button
-              Positioned(
-                top: 12,
-                right: 12,
-                child: GestureDetector(
-                  onTap: _toggleFullscreen,
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.fullscreen_exit,
-                      size: 20,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
         ),
