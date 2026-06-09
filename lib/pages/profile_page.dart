@@ -149,9 +149,9 @@ class _ProfilePageState extends State<ProfilePage>
     });
     try {
       if (wasSubscribed) {
-        await MurrtubeApi.unsubscribeFromUser(_user!.id);
+        await MurrtubeApi.unsubscribeFromUser(_user!.slug);
       } else {
-        await MurrtubeApi.subscribeToUser(_user!.id);
+        await MurrtubeApi.subscribeToUser(_user!.slug);
       }
     } catch (e) {
       debugPrint('Toggle subscribe error: $e');
