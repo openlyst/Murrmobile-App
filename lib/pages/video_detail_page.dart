@@ -32,9 +32,12 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   double _dragProgress = 0;
   bool _viewerCanLike = false;
   bool _viewerLiked = false;
+  bool _viewerCanComment = false;
   int _likesCount = 0;
   bool _isMuted = false;
   bool _isFullscreen = false;
+  final _commentController = TextEditingController();
+  bool _postingComment = false;
 
   @override
   void initState() {
@@ -51,6 +54,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   @override
   void dispose() {
     _controller?.dispose();
+    _commentController.dispose();
     super.dispose();
   }
 
@@ -62,6 +66,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
         _comments = result.comments;
         _watchMore = result.watchMore;
         _viewerCanLike = result.viewerCanLike;
+        _viewerCanComment = result.viewerCanComment;
         _viewerLiked = result.medium.viewerLiked;
         _likesCount = result.medium.likesCount;
         _loading = false;
@@ -235,6 +240,34 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
       return '${two(hours)}:${two(minutes)}:${two(seconds)}';
     }
     return '${two(minutes)}:${two(seconds)}';
+  }
+
+  Future<void> _postComment() async {
+    final text = _commentController.text.trim();
+    if (text.isEmpty || _medium == null) return;
+    setState(() => _postingComment = true);
+    try {
+      await MurrtubeApi.postComment(
+        mediumId: _medium!.id,
+        body: text,
+      );
+      _commentController.clear();
+      final result = await MurrtubeApi.getVideo(widget.shortCode);
+      if (mounted) {
+        setState(() {
+          _comments = result.comments;
+          _postingComment = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('postComment error: $e');
+      if (mounted) setState(() => _postingComment = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to post comment')),
+        );
+      }
+    }
   }
 
   @override
@@ -995,6 +1028,60 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                 ),
                 if (_showComments) ...[
                   const SizedBox(height: 10),
+                  if (_viewerCanComment)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _commentController,
+                              decoration: InputDecoration(
+                                hintText: 'Add a comment...',
+                                filled: true,
+                                fillColor: Theme.of(context).colorScheme.surface,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 10,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(24),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                              textInputAction: TextInputAction.send,
+                              onSubmitted: (_) => _postComment(),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          _postingComment
+                              ? SizedBox(
+                                  width: 36,
+                                  height: 36,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                )
+                              : GestureDetector(
+                                  onTap: _postComment,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).colorScheme.primary,
+                                      borderRadius: BorderRadius.circular(24),
+                                    ),
+                                    child: const Icon(
+                                      Icons.send,
+                                      size: 18,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                        ],
+                      ),
+                    ),
+                  if (_viewerCanComment) const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
