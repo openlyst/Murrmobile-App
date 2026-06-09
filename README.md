@@ -34,7 +34,7 @@ The app supports iOS, Android, macOS, Linux, Windows, and Web from a single code
 
 - [Flutter SDK](https://docs.flutter.dev/get-started/install) ^3.12.1
 - A supported IDE (VS Code or Android Studio recommended)
-- For mobile: Android SDK or Xcode
+- For mobile: Android SDK or Xcode (Optional for desktop builds)
 
 ### Run the app
 
