@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import '../models/media.dart';
 import '../models/comment.dart';
 import '../models/playlist.dart';
@@ -58,6 +59,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
 
   @override
   void dispose() {
+    WakelockPlus.disable();
     _fullscreenUITimer?.cancel();
     _controller?.dispose();
     _commentController.dispose();
@@ -171,6 +173,13 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
       ..setLooping(true)
       ..addListener(() {
         if (mounted) setState(() {});
+        if (_controller != null && _controller!.value.isInitialized) {
+          if (_controller!.value.isPlaying) {
+            WakelockPlus.enable();
+          } else {
+            WakelockPlus.disable();
+          }
+        }
       })
       ..initialize().then((_) {
         if (mounted) {
