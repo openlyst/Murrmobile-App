@@ -10,6 +10,7 @@ import '../utils/app_preferences.dart';
 import '../widgets/video_card.dart';
 import '../widgets/linkify_text.dart';
 import 'profile_page.dart';
+import 'search_page.dart';
 
 class VideoDetailPage extends StatefulWidget {
   final String shortCode;
@@ -1018,25 +1019,35 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                           spacing: 8,
                           runSpacing: 8,
                           children: medium.tags
-                              .map((tag) => Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context).colorScheme.surface,
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                        color: Theme.of(context).dividerColor
-                                            .withValues(alpha: 0.3),
+                              .map((tag) => GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => SearchPage(initialQuery: tag.name),
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
                                       ),
-                                    ),
-                                    child: Text(
-                                      '#${tag.name}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
-                                        fontWeight: FontWeight.w500,
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).colorScheme.surface,
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color: Theme.of(context).dividerColor
+                                              .withValues(alpha: 0.3),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '#${tag.name}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
                                     ),
                                   ))
