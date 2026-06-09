@@ -649,6 +649,56 @@ class MurrtubeApi {
     }
   }
 
+  static Future<void> deleteComment(String commentId) async {
+    final token = await _fetchCsrfToken();
+    final response = await http.delete(
+      Uri.parse('$baseUrl/comments/$commentId'),
+      headers: {
+        'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Referer': baseUrl,
+        'Origin': baseUrl,
+        'X-Requested-With': 'XMLHttpRequest',
+        'x-csrf-token': token,
+        if (_cookieString != null) 'Cookie': _cookieString!,
+      },
+    );
+    _updateCookiesFromResponse(response);
+    debugPrint('deleteComment status: ${response.statusCode}');
+    if (response.statusCode != 200) {
+      throw HttpException('HTTP ${response.statusCode}');
+    }
+  }
+
+  static Future<void> replyToComment({required String mediumId, required String parentId, required String body}) async {
+    final token = await _fetchCsrfToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl/comments'),
+      headers: {
+        'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Referer': baseUrl,
+        'Origin': baseUrl,
+        'X-Requested-With': 'XMLHttpRequest',
+        'x-csrf-token': token,
+        if (_cookieString != null) 'Cookie': _cookieString!,
+      },
+      body: {
+        'comment[medium_id]': mediumId,
+        'comment[parent_id]': parentId,
+        'comment[body]': body,
+      },
+    );
+    _updateCookiesFromResponse(response);
+    debugPrint('replyToComment status: ${response.statusCode}');
+    if (response.statusCode != 200) {
+      throw HttpException('HTTP ${response.statusCode}');
+    }
+  }
+
   static Future<void> unlikeVideo(String mediumId) async {
     final token = await _fetchCsrfToken();
     final response = await http.delete(
