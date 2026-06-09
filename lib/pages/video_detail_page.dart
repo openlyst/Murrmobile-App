@@ -401,7 +401,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
       onWillPop: _onWillPop,
       child: Scaffold(
         backgroundColor: Theme.of(context).colorScheme.background,
-        body: CustomScrollView(
+        body: SafeArea(
+          child: CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
               child: Column(
@@ -1049,7 +1050,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
         ],
       ),
     ),
-    );
+  ),
+);
   }
 }
 

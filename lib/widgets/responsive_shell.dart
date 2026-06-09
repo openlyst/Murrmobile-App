@@ -114,7 +114,9 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     final colorScheme = theme.colorScheme;
     final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     return Scaffold(
-      body: _items[_selectedIndex].page,
+      body: SafeArea(
+        child: _items[_selectedIndex].page,
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: colorScheme.surface,
