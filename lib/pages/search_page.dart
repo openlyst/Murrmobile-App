@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/media.dart';
@@ -25,6 +26,11 @@ class _SearchPageState extends State<SearchPage> {
   int _currentPage = 1;
   String? _lastQuery;
 
+  List<({String name, String category, int count})> _suggestedTags = [];
+  List<({String slug, String name, String? avatarUrl})> _suggestedUsers = [];
+  bool _suggestionsLoading = false;
+  Timer? _suggestionDebounce;
+
   Future<void> _search() async {
     final query = _controller.text.trim();
     if (query.isEmpty) return;
@@ -33,6 +39,8 @@ class _SearchPageState extends State<SearchPage> {
       _lastQuery = query;
       _currentPage = 1;
       _hasMore = true;
+      _suggestedTags = [];
+      _suggestedUsers = [];
     });
     try {
       final result = await MurrtubeApi.search(query: query, page: _currentPage);
@@ -46,6 +54,28 @@ class _SearchPageState extends State<SearchPage> {
       debugPrint('SearchPage error: $e');
     } finally {
       setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _fetchSuggestions(String query) async {
+    if (query.length < 2) {
+      setState(() {
+        _suggestedTags = [];
+        _suggestedUsers = [];
+      });
+      return;
+    }
+    setState(() => _suggestionsLoading = true);
+    try {
+      final result = await MurrtubeApi.searchSuggest(query);
+      setState(() {
+        _suggestedTags = result.tags;
+        _suggestedUsers = result.users;
+        _suggestionsLoading = false;
+      });
+    } catch (e) {
+      debugPrint('SearchPage suggestions error: $e');
+      setState(() => _suggestionsLoading = false);
     }
   }
 
@@ -73,6 +103,12 @@ class _SearchPageState extends State<SearchPage> {
     if (width >= 900) return 4;
     if (width >= 600) return 3;
     return 2;
+  }
+
+  @override
+  void dispose() {
+    _suggestionDebounce?.cancel();
+    super.dispose();
   }
 
   @override
@@ -136,7 +172,16 @@ class _SearchPageState extends State<SearchPage> {
                             vertical: 14,
                           ),
                         ),
-                        onSubmitted: (_) => _search(),
+                        onChanged: (text) {
+                          _suggestionDebounce?.cancel();
+                          _suggestionDebounce = Timer(const Duration(milliseconds: 300), () {
+                            _fetchSuggestions(text.trim());
+                          });
+                        },
+                        onSubmitted: (_) {
+                          _suggestionDebounce?.cancel();
+                          _search();
+                        },
                       ),
                     ),
                   ),
@@ -173,29 +218,198 @@ class _SearchPageState extends State<SearchPage> {
                 ),
               ),
             )
-          else if (_lastQuery == null)
-            SliverFillRemaining(
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.search,
-                      size: 48,
-                      color: mutedColor,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Type to search',
-                      style: TextStyle(
+          else if (_lastQuery == null) ...[
+            if (_suggestedTags.isNotEmpty || _suggestedUsers.isNotEmpty || _suggestionsLoading)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_suggestionsLoading)
+                        Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                        )
+                      else ...[
+                        if (_suggestedTags.isNotEmpty) ...[
+                          Text(
+                            'Tags',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: mutedColor,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: _suggestedTags
+                                .map((tag) => GestureDetector(
+                                      onTap: () {
+                                        _controller.text = tag.name;
+                                        _search();
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: colorScheme.surface,
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(
+                                            color: theme.dividerColor.withValues(alpha: 0.3),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.local_offer_outlined,
+                                              size: 14,
+                                              color: colorScheme.primary,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              tag.name,
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w500,
+                                                color: colorScheme.onSurface,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              '${tag.count}',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: mutedColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ))
+                                .toList(),
+                          ),
+                        ],
+                        if (_suggestedUsers.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          Text(
+                            'Users',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: mutedColor,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Column(
+                            children: _suggestedUsers
+                                .map((user) => GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => ProfilePage(slug: user.slug),
+                                          ),
+                                        );
+                                      },
+                                      child: Container(
+                                        margin: const EdgeInsets.only(bottom: 8),
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: colorScheme.surface,
+                                          borderRadius: BorderRadius.circular(10),
+                                          border: Border.all(
+                                            color: theme.dividerColor.withValues(alpha: 0.3),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            ClipOval(
+                                              child: user.avatarUrl != null
+                                                  ? CachedNetworkImage(
+                                                      imageUrl: user.avatarUrl!,
+                                                      width: 32,
+                                                      height: 32,
+                                                      fit: BoxFit.cover,
+                                                      placeholder: (_, __) => Container(
+                                                        color: colorScheme.surfaceContainerHighest,
+                                                      ),
+                                                      errorWidget: (_, __, ___) => Icon(
+                                                        Icons.person,
+                                                        size: 16,
+                                                        color: mutedColor,
+                                                      ),
+                                                    )
+                                                  : Container(
+                                                      width: 32,
+                                                      height: 32,
+                                                      decoration: BoxDecoration(
+                                                        color: colorScheme.surfaceContainerHighest,
+                                                        borderRadius: BorderRadius.circular(16),
+                                                      ),
+                                                      child: Icon(
+                                                        Icons.person,
+                                                        size: 16,
+                                                        color: mutedColor,
+                                                      ),
+                                                    ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Text(
+                                              user.name,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 13,
+                                                color: colorScheme.onSurface,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ))
+                                .toList(),
+                          ),
+                        ],
+                      ],
+                    ],
+                  ),
+                ),
+              )
+            else
+              SliverFillRemaining(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.search,
+                        size: 48,
                         color: mutedColor,
-                        fontSize: 15,
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      Text(
+                        'Type to search',
+                        style: TextStyle(
+                          color: mutedColor,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            )
+          ]
           else ...[
             if (_tagMatches.isNotEmpty) ...[
               _SectionHeader(title: 'Tags (${_tagMatches.length})'),
