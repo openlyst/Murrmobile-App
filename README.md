@@ -9,72 +9,47 @@
   <a href="https://dart.dev"><img src="https://img.shields.io/badge/Dart-3.0+-0175C2?logo=dart&logoColor=white" alt="Dart" /></a>
 </p>
 
-## Overview
+## What is this?
 
-Murrmobile is an unofficial, cross-platform mobile and desktop app for [murrtube.net](https://murrtube.net). It is built entirely in [Flutter](https://flutter.dev) and reverse-engineered from the website's [Inertia.js](https://inertiajs.com) frontend, allowing it to provide a native app experience without requiring a dedicated public API.
-
-The app supports iOS, Android, macOS, Linux, Windows, and Web from a single codebase.
+Unofficial app for [murrtube.net](https://murrtube.net). Built in Flutter, reverse-engineered from the site's Inertia.js frontend since there's no public API. Works on iOS, Android, macOS, Linux, Windows, and Web.
 
 ## Features
 
-- **Home Feed** — Browse Trending, Latest, and Subscriptions with pull-to-refresh and infinite scroll pagination
-- **Video Player** — Full HLS streaming support with adaptive quality, fullscreen landscape mode, auto-hiding controls, timeline scrubbing, and wakelock while playing
-- **Search** — Real-time tag and user suggestions with debounced queries; search by video title, tag, or user
-- **Comments** — View, post, reply to, and delete comments on videos
-- **User Profiles** — View profiles, videos, playlists, subscribe/unsubscribe, block/unblock
-- **Notifications** — In-app notification feed
-- **Upload** — Upload videos directly from the app
-- **Themes** — Dark, light, and AMOLED themes with persistent preferences
-- **Responsive Layout** — Adaptive navigation rail on desktop/tablet, bottom nav on mobile
-- **Cross-Platform** — One codebase targeting Android, iOS, macOS, Linux, Windows, and Web
+- Browse Trending / Latest / Subscriptions
+- HLS video player with quality switching, fullscreen, scrubbing, wakelock
+- Search videos, tags, and users with live suggestions
+- Comments (view, post, reply, delete)
+- User profiles, subscribe/unsubscribe, block/unblock
+- Notifications feed
+- Upload videos from the app
+- Dark / light / AMOLED themes
+- Adaptive layout (bottom nav on phones, rail on tablets/desktop)
 
-## Getting Started
+## Building
 
-### Prerequisites
-
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) ^3.12.1
-- A supported IDE (VS Code or Android Studio recommended)
-- For mobile: Android SDK or Xcode (Optional for desktop builds)
-
-### Run the app
+You need Flutter 3.12.1 or newer.
 
 ```bash
-# Clone the repository
 git clone https://gitlab.com/HttpAnimations/Murrmobile-App.git
 cd Murrmobile-App
-
-# Install dependencies
 flutter pub get
-
-# Run on your connected device or emulator
 flutter run
 ```
 
-### Build for release
+Release builds:
 
 ```bash
-# Android APK
-flutter build apk --release
-
-# Android App Bundle
-flutter build appbundle --release
-
-# iOS
-flutter build ios --release
-
-# macOS
-flutter build macos --release
-
-# Linux
-flutter build linux --release
-
-# Windows
-flutter build windows --release
+flutter build apk --release        # Android APK
+flutter build appbundle --release  # Android AAB
+flutter build ios --release        # iOS
+flutter build macos --release      # macOS
+flutter build linux --release      # Linux
+flutter build windows --release    # Windows
 ```
 
 ## Downloads
 
-Pre-built binaries for all platforms are available on the [releases page](https://github.com/openlyst/Murrmobile-App-builds/releases).
+Prebuilt binaries are on the [releases page](https://github.com/openlyst/Murrmobile-App-builds/releases).
 
 | Platform | Download |
 |----------|----------|
@@ -84,7 +59,6 @@ Pre-built binaries for all platforms are available on the [releases page](https:
 | macOS | Unsigned ZIP |
 | Windows | ZIP (x64) |
 
-> [!NOTE]
-> This is an unofficial client. It is not affiliated with or endorsed by the operators of murrtube.net. The app relies on the website's internal Inertia.js protocol, which may change without notice.
-
-> We hope to one day became a part of the murrtube stack but for now we are just a fan app.
+> This is an **unofficial** fan app. Not affiliated with or endorsed by murrtube.net. The Inertia.js protocol the app relies on can change at any time and break things.
+>
+> Hoping to maybe become part of the official stack one day, but for now this is just a side project.
