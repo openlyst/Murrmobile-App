@@ -243,6 +243,14 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     return '${two(minutes)}:${two(seconds)}';
   }
 
+  int _crossAxisCount(double width) {
+    if (width >= 1600) return 6;
+    if (width >= 1200) return 5;
+    if (width >= 900) return 4;
+    if (width >= 600) return 3;
+    return 2;
+  }
+
   Future<void> _deleteComment(String commentId) async {
     try {
       await MurrtubeApi.deleteComment(commentId);
@@ -1154,28 +1162,40 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      children: _watchMore
-                          .map((m) => Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: VideoCard(
-                                  media: m,
-                                  onTap: () {
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => VideoDetailPage(
-                                          shortCode: m.shortCode,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ))
-                          .toList(),
-                    ),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final cols = _crossAxisCount(constraints.maxWidth);
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: cols,
+                            childAspectRatio: 10 / 16,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                          ),
+                          itemCount: _watchMore.length,
+                          itemBuilder: (context, index) {
+                            final m = _watchMore[index];
+                            return VideoCard(
+                              media: m,
+                              onTap: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => VideoDetailPage(
+                                      shortCode: m.shortCode,
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      );
+                    },
                   ),
                 ],
                 const SizedBox(height: 20),
