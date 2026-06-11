@@ -4,6 +4,7 @@ class AppPreferences {
   static const _themeKey = 'app_theme';
   static const _videoQualityKey = 'video_quality';
   static const _muteKey = 'video_muted';
+  static const _sidebarKey = 'use_sidebar';
 
   static Future<String> getTheme() async {
     final prefs = await SharedPreferences.getInstance();
@@ -33,5 +34,15 @@ class AppPreferences {
   static Future<void> setMute(bool muted) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_muteKey, muted);
+  }
+
+  static Future<bool> getUseSidebar() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_sidebarKey) ?? true;
+  }
+
+  static Future<void> setUseSidebar(bool useSidebar) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_sidebarKey, useSidebar);
   }
 }

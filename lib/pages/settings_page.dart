@@ -23,6 +23,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _loading = true;
   bool _wasLoggedIn = false;
   String _videoQuality = 'auto';
+  bool _useSidebar = true;
 
   @override
   void initState() {
@@ -34,8 +35,12 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _loadLocal() async {
     final quality = await AppPreferences.getVideoQuality();
+    final useSidebar = await AppPreferences.getUseSidebar();
     if (mounted) {
-      setState(() => _videoQuality = quality);
+      setState(() {
+        _videoQuality = quality;
+        _useSidebar = useSidebar;
+      });
     }
   }
 
@@ -237,20 +242,43 @@ class _SettingsPageState extends State<SettingsPage> {
                     builder: (context) {
                       final themeProvider = context.watch<ThemeProvider>();
                       final current = themeProvider.currentTheme;
-                      return _buildActionTile(
-                        icon: Icons.palette_outlined,
-                        label: 'Theme',
-                        subtitle: current[0].toUpperCase() + current.substring(1),
-                        onTap: () => _showSelectionSheet(
-                          title: 'Select Theme',
-                          options: themes.map((t) {
-                            final name = t['name'] ?? 'Theme';
-                            final value = t['value'] ?? name.toLowerCase();
-                            return _SelectionOption(label: name, value: value);
-                          }).toList(),
-                          selected: current,
-                          onSelect: (value) => themeProvider.setTheme(value),
-                        ),
+                      return Column(
+                        children: [
+                          _buildActionTile(
+                            icon: Icons.palette_outlined,
+                            label: 'Theme',
+                            subtitle: current[0].toUpperCase() + current.substring(1),
+                            onTap: () => _showSelectionSheet(
+                              title: 'Select Theme',
+                              options: themes.map((t) {
+                                final name = t['name'] ?? 'Theme';
+                                final value = t['value'] ?? name.toLowerCase();
+                                return _SelectionOption(label: name, value: value);
+                              }).toList(),
+                              selected: current,
+                              onSelect: (value) => themeProvider.setTheme(value),
+                            ),
+                            showDivider: true,
+                          ),
+                          _buildActionTile(
+                            icon: Icons.view_sidebar_outlined,
+                            label: 'Desktop Navigation',
+                            subtitle: _useSidebar ? 'Sidebar' : 'Bottom Bar',
+                            onTap: () => _showSelectionSheet(
+                              title: 'Select Desktop Navigation',
+                              options: const [
+                                _SelectionOption(label: 'Sidebar', value: 'true'),
+                                _SelectionOption(label: 'Bottom Bar', value: 'false'),
+                              ],
+                              selected: _useSidebar.toString(),
+                              onSelect: (value) async {
+                                final useSidebar = value == 'true';
+                                await AppPreferences.setUseSidebar(useSidebar);
+                                setState(() => _useSidebar = useSidebar);
+                              },
+                            ),
+                          ),
+                        ],
                       );
                     },
                   ),

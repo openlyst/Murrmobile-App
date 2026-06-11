@@ -6,6 +6,7 @@ import '../pages/upload_page.dart';
 import '../pages/notifications_page.dart';
 import '../pages/settings_page.dart';
 import '../pages/profile_page.dart';
+import '../utils/app_preferences.dart';
 
 class NavItem {
   final String label;
@@ -32,6 +33,8 @@ class ResponsiveShell extends StatefulWidget {
 class _ResponsiveShellState extends State<ResponsiveShell> {
   late int _selectedIndex;
   bool _wasLoggedIn = false;
+  bool _useSidebar = true;
+  bool _isSidebarCollapsed = false;
 
   List<NavItem> get _items {
     final base = <NavItem>[
@@ -78,6 +81,14 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     super.initState();
     _selectedIndex = widget.initialIndex;
     _wasLoggedIn = MurrtubeApi.isAuthenticated;
+    _loadSidebarPreference();
+  }
+
+  Future<void> _loadSidebarPreference() async {
+    final useSidebar = await AppPreferences.getUseSidebar();
+    if (mounted) {
+      setState(() => _useSidebar = useSidebar);
+    }
   }
 
   @override
@@ -102,11 +113,15 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     final width = MediaQuery.of(context).size.width;
     final isDesktop = width >= 900;
 
-    if (isDesktop) {
+    if (isDesktop && _useSidebar) {
       return _DesktopLayout(
         items: _items,
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
+        isCollapsed: _isSidebarCollapsed,
+        onToggleCollapse: () {
+          setState(() => _isSidebarCollapsed = !_isSidebarCollapsed);
+        },
       );
     }
 
@@ -192,11 +207,15 @@ class _DesktopLayout extends StatelessWidget {
   final List<NavItem> items;
   final int selectedIndex;
   final ValueChanged<int> onItemTapped;
+  final bool isCollapsed;
+  final VoidCallback onToggleCollapse;
 
   const _DesktopLayout({
     required this.items,
     required this.selectedIndex,
     required this.onItemTapped,
+    required this.isCollapsed,
+    required this.onToggleCollapse,
   });
 
   @override
@@ -204,11 +223,15 @@ class _DesktopLayout extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
+    final sidebarWidth = isCollapsed ? 72.0 : 240.0;
+    
     return Scaffold(
       body: Row(
         children: [
-          Container(
-            width: 240,
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
+            width: sidebarWidth,
             color: colorScheme.surface,
             child: Column(
               children: [
@@ -216,6 +239,7 @@ class _DesktopLayout extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
+                    mainAxisAlignment: isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10),
@@ -226,15 +250,17 @@ class _DesktopLayout extends StatelessWidget {
                           fit: BoxFit.cover,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Murrmobile',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: colorScheme.onSurface,
+                      if (!isCollapsed) ...[
+                        const SizedBox(width: 12),
+                        Text(
+                          'Murrmobile',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: colorScheme.onSurface,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -255,8 +281,8 @@ class _DesktopLayout extends StatelessWidget {
                             onTap: () => onItemTapped(index),
                             borderRadius: BorderRadius.circular(12),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isCollapsed ? 12 : 16,
                                 vertical: 14,
                               ),
                               decoration: isSelected
@@ -272,6 +298,7 @@ class _DesktopLayout extends StatelessWidget {
                                     )
                                   : null,
                               child: Row(
+                                mainAxisAlignment: isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
                                 children: [
                                   Icon(
                                     isSelected
@@ -282,20 +309,22 @@ class _DesktopLayout extends StatelessWidget {
                                         : mutedColor,
                                     size: 22,
                                   ),
-                                  const SizedBox(width: 14),
-                                  Text(
-                                    item.label,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: isSelected
-                                          ? FontWeight.w600
-                                          : FontWeight.w500,
-                                      color: isSelected
-                                          ? colorScheme.primary
-                                          : mutedColor,
+                                  if (!isCollapsed) ...[
+                                    const SizedBox(width: 14),
+                                    Text(
+                                      item.label,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.w500,
+                                        color: isSelected
+                                            ? colorScheme.primary
+                                            : mutedColor,
+                                      ),
                                     ),
-                                  ),
-                                  if (isSelected) ...[
+                                  ],
+                                  if (isSelected && !isCollapsed) ...[
                                     const Spacer(),
                                     Container(
                                       width: 6,
@@ -316,7 +345,46 @@ class _DesktopLayout extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                if (MurrtubeApi.isAuthenticated)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Material(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      onTap: onToggleCollapse,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+                          children: [
+                            Icon(
+                              isCollapsed ? Icons.chevron_right : Icons.chevron_left,
+                              color: mutedColor,
+                              size: 22,
+                            ),
+                            if (!isCollapsed) ...[
+                              const SizedBox(width: 14),
+                              Text(
+                                'Collapse',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: mutedColor,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (MurrtubeApi.isAuthenticated && !isCollapsed)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Material(
