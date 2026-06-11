@@ -75,25 +75,14 @@ class AgeConfirmationPage extends StatelessWidget {
     }
   }
 
-  Future<void> _handleExit(BuildContext context) async {
-    // Exit the app - on mobile this will close the app
-    // On web/desktop, we'll show a message
-    if (Theme.of(context).platform == TargetPlatform.android ||
-        Theme.of(context).platform == TargetPlatform.iOS) {
-      // For mobile, we can't really exit the app programmatically
-      // So we'll just show a message and close the dialog
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please close the app to exit'),
-            duration: Duration(seconds: 3),
-          ),
-        );
-      }
-    } else {
-      if (context.mounted) {
-        Navigator.of(context).pop(false);
-      }
+  void _handleExit(BuildContext context) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please close the app and uninstall it'),
+          duration: Duration(seconds: 5),
+        ),
+      );
     }
   }
 }
