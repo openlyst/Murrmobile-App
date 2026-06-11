@@ -23,7 +23,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _loading = true;
   bool _wasLoggedIn = false;
   String _videoQuality = 'auto';
-  bool _useSidebar = true;
+  String _navigationMode = 'collapsed_sidebar';
 
   @override
   void initState() {
@@ -35,11 +35,11 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _loadLocal() async {
     final quality = await AppPreferences.getVideoQuality();
-    final useSidebar = await AppPreferences.getUseSidebar();
+    final navigationMode = await AppPreferences.getNavigationMode();
     if (mounted) {
       setState(() {
         _videoQuality = quality;
-        _useSidebar = useSidebar;
+        _navigationMode = navigationMode;
       });
     }
   }
@@ -263,18 +263,17 @@ class _SettingsPageState extends State<SettingsPage> {
                           _buildActionTile(
                             icon: Icons.view_sidebar_outlined,
                             label: 'Small Screen Navigation',
-                            subtitle: _useSidebar ? 'Sidebar' : 'Bottom Bar',
+                            subtitle: _getNavigationModeLabel(),
                             onTap: () => _showSelectionSheet(
                               title: 'Select Small Screen Navigation',
                               options: const [
-                                _SelectionOption(label: 'Sidebar', value: 'true'),
-                                _SelectionOption(label: 'Bottom Bar', value: 'false'),
+                                _SelectionOption(label: 'Collapsed Sidebar', value: 'collapsed_sidebar'),
+                                _SelectionOption(label: 'Bottom Bar', value: 'bottom_bar'),
                               ],
-                              selected: _useSidebar.toString(),
+                              selected: _navigationMode,
                               onSelect: (value) async {
-                                final useSidebar = value == 'true';
-                                await AppPreferences.setUseSidebar(useSidebar);
-                                setState(() => _useSidebar = useSidebar);
+                                await AppPreferences.setNavigationMode(value);
+                                setState(() => _navigationMode = value);
                               },
                             ),
                           ),
@@ -538,6 +537,17 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
     );
+  }
+
+  String _getNavigationModeLabel() {
+    switch (_navigationMode) {
+      case 'collapsed_sidebar':
+        return 'Collapsed Sidebar';
+      case 'bottom_bar':
+        return 'Bottom Bar';
+      default:
+        return 'Collapsed Sidebar';
+    }
   }
 }
 

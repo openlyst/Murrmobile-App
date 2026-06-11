@@ -33,8 +33,7 @@ class ResponsiveShell extends StatefulWidget {
 class _ResponsiveShellState extends State<ResponsiveShell> {
   late int _selectedIndex;
   bool _wasLoggedIn = false;
-  bool _useSidebar = true;
-  bool _isSidebarCollapsed = false;
+  String _navigationMode = 'collapsed_sidebar';
 
   List<NavItem> get _items {
     final base = <NavItem>[
@@ -85,9 +84,9 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
   }
 
   Future<void> _loadSidebarPreference() async {
-    final useSidebar = await AppPreferences.getUseSidebar();
+    final navigationMode = await AppPreferences.getNavigationMode();
     if (mounted) {
-      setState(() => _useSidebar = useSidebar);
+      setState(() => _navigationMode = navigationMode);
     }
   }
 
@@ -110,15 +109,14 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
 
   @override
   Widget build(BuildContext context) {
-    if (_useSidebar) {
+    if (_navigationMode == 'collapsed_sidebar') {
       return _DesktopLayout(
         items: _items,
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
-        isCollapsed: _isSidebarCollapsed,
-        onToggleCollapse: () {
-          setState(() => _isSidebarCollapsed = !_isSidebarCollapsed);
-        },
+        isCollapsed: true,
+        onToggleCollapse: () {},
+        canExpand: false,
       );
     }
 
@@ -206,6 +204,7 @@ class _DesktopLayout extends StatelessWidget {
   final ValueChanged<int> onItemTapped;
   final bool isCollapsed;
   final VoidCallback onToggleCollapse;
+  final bool canExpand;
 
   const _DesktopLayout({
     required this.items,
@@ -213,6 +212,7 @@ class _DesktopLayout extends StatelessWidget {
     required this.onItemTapped,
     required this.isCollapsed,
     required this.onToggleCollapse,
+    this.canExpand = true,
   });
 
   @override
@@ -342,44 +342,45 @@ class _DesktopLayout extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: isCollapsed ? 8 : 12),
-                  child: Material(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
-                    child: InkWell(
-                      onTap: onToggleCollapse,
+                if (canExpand)
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: isCollapsed ? 8 : 12),
+                    child: Material(
+                      color: Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isCollapsed ? 8 : 16,
-                          vertical: 14,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
-                          children: [
-                            Icon(
-                              isCollapsed ? Icons.chevron_right : Icons.chevron_left,
-                              color: mutedColor,
-                              size: 22,
-                            ),
-                            if (!isCollapsed) ...[
-                              const SizedBox(width: 14),
-                              Text(
-                                'Collapse',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: mutedColor,
-                                ),
+                      child: InkWell(
+                        onTap: onToggleCollapse,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isCollapsed ? 8 : 16,
+                            vertical: 14,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+                            children: [
+                              Icon(
+                                isCollapsed ? Icons.chevron_right : Icons.chevron_left,
+                                color: mutedColor,
+                                size: 22,
                               ),
+                              if (!isCollapsed) ...[
+                                const SizedBox(width: 14),
+                                Text(
+                                  'Collapse',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: mutedColor,
+                                  ),
+                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
                 const SizedBox(height: 8),
                 if (MurrtubeApi.isAuthenticated && !isCollapsed)
                   Padding(

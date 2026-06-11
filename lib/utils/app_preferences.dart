@@ -4,7 +4,7 @@ class AppPreferences {
   static const _themeKey = 'app_theme';
   static const _videoQualityKey = 'video_quality';
   static const _muteKey = 'video_muted';
-  static const _sidebarKey = 'use_sidebar';
+  static const _navigationModeKey = 'navigation_mode';
 
   static Future<String> getTheme() async {
     final prefs = await SharedPreferences.getInstance();
@@ -36,13 +36,13 @@ class AppPreferences {
     await prefs.setBool(_muteKey, muted);
   }
 
-  static Future<bool> getUseSidebar() async {
+  static Future<String> getNavigationMode() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_sidebarKey) ?? true;
+    return prefs.getString(_navigationModeKey) ?? 'collapsed_sidebar';
   }
 
-  static Future<void> setUseSidebar(bool useSidebar) async {
+  static Future<void> setNavigationMode(String mode) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_sidebarKey, useSidebar);
+    await prefs.setString(_navigationModeKey, mode);
   }
 }
