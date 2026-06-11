@@ -83,7 +83,13 @@ class _AgeCheckWrapperState extends State<AgeCheckWrapper> {
     }
 
     if (!_ageConfirmed) {
-      return const AgeConfirmationPage();
+      return AgeConfirmationPage(
+        onConfirmed: () {
+          setState(() {
+            _ageConfirmed = true;
+          });
+        },
+      );
     }
 
     return const ResponsiveShell();

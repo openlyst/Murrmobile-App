@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AgeConfirmationPage extends StatelessWidget {
-  const AgeConfirmationPage({super.key});
+  final VoidCallback? onConfirmed;
+
+  const AgeConfirmationPage({super.key, this.onConfirmed});
 
   @override
   Widget build(BuildContext context) {
@@ -70,9 +72,7 @@ class AgeConfirmationPage extends StatelessWidget {
   Future<void> _handleConfirm(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('age_confirmed', true);
-    if (context.mounted) {
-      Navigator.of(context).pop(true);
-    }
+    onConfirmed?.call();
   }
 
   void _handleExit(BuildContext context) {
