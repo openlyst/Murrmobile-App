@@ -472,6 +472,8 @@ class MurrtubeApi {
     String? furaffinityUrl,
     String? patreonUrl,
     String? kofiUrl,
+    String? blueskyUrl,
+    String? onlyfansUrl,
   })> getUserProfile(String slug, {int page = 1, String tab = 'videos'}) async {
     var path = '/$slug';
     if (tab != 'videos') path += '?tab=$tab';
@@ -513,6 +515,18 @@ class MurrtubeApi {
         tabCounts[e.key] = e.value as int? ?? 0;
       }
     }
+
+    // Parse social media from nested social_media object
+    final socialMedia = profileRaw['social_media'] as Map<String, dynamic>?;
+    final telegramUrl = socialMedia != null ? (socialMedia['telegram'] as String?) : null;
+    final gitlabUrl = socialMedia != null ? (socialMedia['gitlab'] as String?) : null;
+    final twitterUrl = socialMedia != null ? (socialMedia['twitter'] as String?) : null;
+    final furaffinityUrl = socialMedia != null ? (socialMedia['furaffinity'] as String?) : null;
+    final patreonUrl = socialMedia != null ? (socialMedia['patreon'] as String?) : null;
+    final kofiUrl = socialMedia != null ? (socialMedia['kofi'] as String?) : null;
+    final blueskyUrl = socialMedia != null ? (socialMedia['bluesky'] as String?) : null;
+    final onlyfansUrl = socialMedia != null ? (socialMedia['onlyfans'] as String?) : null;
+
     return (
       user: user,
       media: mediaList,
@@ -525,13 +539,15 @@ class MurrtubeApi {
       subscribersCount: tabCounts['subscribers'] ?? profileRaw['subscribers_count'] as int?,
       subscriptionsCount: tabCounts['subscriptions'] ?? profileRaw['subscriptions_count'] as int?,
       bio: profileRaw['bio'] as String? ?? profileRaw['description'] as String?,
-      telegramUrl: profileRaw['telegram_url'] as String?,
+      telegramUrl: telegramUrl,
       tabCounts: tabCounts,
-      gitlabUrl: profileRaw['gitlab'] as String?,
-      twitterUrl: profileRaw['twitter'] as String?,
-      furaffinityUrl: profileRaw['furaffinity'] as String?,
-      patreonUrl: profileRaw['patreon'] as String?,
-      kofiUrl: profileRaw['kofi'] as String?,
+      gitlabUrl: gitlabUrl,
+      twitterUrl: twitterUrl,
+      furaffinityUrl: furaffinityUrl,
+      patreonUrl: patreonUrl,
+      kofiUrl: kofiUrl,
+      blueskyUrl: blueskyUrl,
+      onlyfansUrl: onlyfansUrl,
     );
   }
 
