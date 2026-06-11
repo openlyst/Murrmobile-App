@@ -1205,24 +1205,26 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                 iconColor: _viewerLiked ? Theme.of(context).colorScheme.primary : null,
                               ),
                             ),
-                            Container(
-                              width: 1,
-                              height: 28,
-                              color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
-                            ),
-                            GestureDetector(
-                              onTap: MurrtubeApi.isAuthenticated ? _showSaveBottomSheet : null,
-                              child: _StatItem(
-                                icon: Icons.playlist_add_rounded,
-                                value: '',
-                                label: 'Save',
+                            if (MurrtubeApi.isAuthenticated) ...[
+                              Container(
+                                width: 1,
+                                height: 28,
+                                color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
                               ),
-                            ),
-                            Container(
-                              width: 1,
-                              height: 28,
-                              color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
-                            ),
+                              GestureDetector(
+                                onTap: _showSaveBottomSheet,
+                                child: _StatItem(
+                                  icon: Icons.playlist_add_rounded,
+                                  value: '',
+                                  label: 'Save',
+                                ),
+                              ),
+                              Container(
+                                width: 1,
+                                height: 28,
+                                color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
+                              ),
+                            ],
                             _StatItem(
                               icon: Icons.chat_bubble_outline,
                               value: '${medium.commentsCount}',
