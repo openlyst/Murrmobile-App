@@ -262,10 +262,10 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           _buildActionTile(
                             icon: Icons.view_sidebar_outlined,
-                            label: 'Desktop Navigation',
+                            label: 'Small Screen Navigation',
                             subtitle: _useSidebar ? 'Sidebar' : 'Bottom Bar',
                             onTap: () => _showSelectionSheet(
-                              title: 'Select Desktop Navigation',
+                              title: 'Select Small Screen Navigation',
                               options: const [
                                 _SelectionOption(label: 'Sidebar', value: 'true'),
                                 _SelectionOption(label: 'Bottom Bar', value: 'false'),
