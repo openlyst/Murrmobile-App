@@ -106,12 +106,25 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     final navigationProvider = context.watch<NavigationProvider>();
     final navigationMode = navigationProvider.navigationMode;
 
+    // On desktop, always use sidebar regardless of preference
+    if (isDesktop) {
+      return _DesktopLayout(
+        items: _items,
+        selectedIndex: _selectedIndex,
+        onItemTapped: _onItemTapped,
+        isCollapsed: false,
+        onToggleCollapse: () {},
+        canExpand: false,
+      );
+    }
+
+    // On small screens, respect the navigation mode preference
     if (navigationMode == 'collapsed_sidebar') {
       return _DesktopLayout(
         items: _items,
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
-        isCollapsed: !isDesktop,
+        isCollapsed: true,
         onToggleCollapse: () {},
         canExpand: false,
       );
