@@ -109,12 +109,15 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final isDesktop = width >= 900;
+
     if (_navigationMode == 'collapsed_sidebar') {
       return _DesktopLayout(
         items: _items,
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
-        isCollapsed: true,
+        isCollapsed: !isDesktop,
         onToggleCollapse: () {},
         canExpand: false,
       );
@@ -382,7 +385,7 @@ class _DesktopLayout extends StatelessWidget {
                     ),
                   ),
                 const SizedBox(height: 8),
-                if (MurrtubeApi.isAuthenticated && !isCollapsed)
+                if (MurrtubeApi.isAuthenticated && !isCollapsed && canExpand)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Material(
