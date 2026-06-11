@@ -110,10 +110,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final isDesktop = width >= 900;
-
-    if (isDesktop && _useSidebar) {
+    if (_useSidebar) {
       return _DesktopLayout(
         items: _items,
         selectedIndex: _selectedIndex,
