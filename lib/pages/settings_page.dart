@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/murrtube_api.dart';
 import '../utils/cookie_loader.dart';
 import '../utils/app_preferences.dart';
@@ -310,6 +312,29 @@ class _SettingsPageState extends State<SettingsPage> {
                     ],
                   ),
                 ),
+                if (kDebugMode) ...[
+                  const SizedBox(height: 20),
+                  _SectionLabel('Debug'),
+                  _buildCard(
+                    child: _buildActionTile(
+                      icon: Icons.bug_report_outlined,
+                      label: 'Reset Age Confirmation',
+                      iconColor: Theme.of(context).colorScheme.error,
+                      onTap: () async {
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.remove('age_confirmed');
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Age confirmation reset. Restart app to test again.'),
+                              duration: Duration(seconds: 3),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ],
               ],
             ),
     );
