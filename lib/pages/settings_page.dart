@@ -88,7 +88,8 @@ class _SettingsPageState extends State<SettingsPage> {
     final serverQuality = _props?['video_quality_options'] as List<dynamic>? ?? [];
 
     final themes = [
-      {'name': 'Auto (from Murrtube)', 'value': 'auto', 'note': 'Only dark mode available'},
+      {'name': 'Auto (System)', 'value': 'auto'},
+      {'name': 'Pull from Murrtube', 'value': 'murrtube', 'note': 'Only dark mode available'},
       {'name': 'Dark', 'value': 'dark'},
       {'name': 'Light', 'value': 'light'},
       {'name': 'AMOLED', 'value': 'amoled'},
