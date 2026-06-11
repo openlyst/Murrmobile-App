@@ -113,6 +113,18 @@ class _HomePageState extends State<HomePage> {
                       active: _currentTab == 'trending',
                       onTap: () => _switchTab('trending'),
                     ),
+                    const SizedBox(width: 10),
+                    _PillTab(
+                      label: 'For You',
+                      active: _currentTab == 'for_you',
+                      onTap: () => _switchTab('for_you'),
+                    ),
+                    const SizedBox(width: 10),
+                    _PillTab(
+                      label: 'Latest',
+                      active: _currentTab == 'latest',
+                      onTap: () => _switchTab('latest'),
+                    ),
                     if (MurrtubeApi.isAuthenticated) ...[
                       const SizedBox(width: 10),
                       _PillTab(

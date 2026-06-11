@@ -74,7 +74,7 @@ class MurrtubeApi {
     debugPrint('Updated cookies from response. Now cookies set? ${hasCookies}');
   }
 
-  static Map<String, String> _headers({String? inertiaVersion}) {
+  static Map<String, String> _headers({String? inertiaVersion, String? homeTab}) {
     final h = {
       'User-Agent':
           'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
@@ -82,6 +82,7 @@ class MurrtubeApi {
       'Accept-Language': 'en-US,en;q=0.9',
       'X-Inertia': 'true',
       if (inertiaVersion != null) 'X-Inertia-Version': inertiaVersion,
+      if (homeTab != null) 'X-Murrtube-Home-Tab': homeTab,
       'Referer': baseUrl,
       if (_cookieString != null) 'Cookie': _cookieString!,
     };
@@ -108,7 +109,7 @@ class MurrtubeApi {
     }).join('; ');
   }
 
-  static Future<InertiaPage> _get(String path) async {
+  static Future<InertiaPage> _get(String path, {String? homeTab}) async {
     final uri = Uri.parse('$baseUrl$path');
     debugPrint('');
     debugPrint('=== MurrtubeApi._get $path ===');
@@ -117,7 +118,7 @@ class MurrtubeApi {
     // Try with cached version first
     var response = await http.get(
       uri,
-      headers: _headers(inertiaVersion: _inertiaVersion),
+      headers: _headers(inertiaVersion: _inertiaVersion, homeTab: homeTab),
     );
 
     var body = utf8.decode(response.bodyBytes);
@@ -163,7 +164,7 @@ class MurrtubeApi {
       debugPrint('Extracted version: $_inertiaVersion');
       response = await http.get(
         uri,
-        headers: _headers(inertiaVersion: _inertiaVersion),
+        headers: _headers(inertiaVersion: _inertiaVersion, homeTab: homeTab),
       );
       _updateCookiesFromResponse(response);
       body = utf8.decode(response.bodyBytes);
@@ -310,7 +311,7 @@ class MurrtubeApi {
     User? currentUser,
   })> getHome({String tab = 'trending', int page = 1}) async {
     final path = page == 1 ? '/?tab=$tab' : '/?tab=$tab&page=$page';
-    final inertia = await _get(path);
+    final inertia = await _get(path, homeTab: tab);
     final props = inertia.props;
     final mediaList = (props['media'] as List<dynamic>)
         .map((m) => Media.fromJson(m as Map<String, dynamic>))
