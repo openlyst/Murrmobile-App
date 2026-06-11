@@ -266,7 +266,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 _SelectionOption(label: 'Collapsed Sidebar', value: 'collapsed_sidebar'),
                                 _SelectionOption(label: 'Bottom Bar', value: 'bottom_bar'),
                               ],
-                              selected: context.watch<NavigationProvider>().navigationMode,
+                              selected: context.read<NavigationProvider>().navigationMode,
                               onSelect: (value) async {
                                 await context.read<NavigationProvider>().setNavigationMode(value);
                               },
