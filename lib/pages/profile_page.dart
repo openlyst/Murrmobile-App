@@ -35,6 +35,8 @@ class _ProfilePageState extends State<ProfilePage>
   String? _furaffinityUrl;
   String? _patreonUrl;
   String? _kofiUrl;
+  String? _blueskyUrl;
+  String? _onlyfansUrl;
   Map<String, int> _tabCounts = {};
   bool _loading = true;
   bool _hasMore = true;
@@ -106,6 +108,8 @@ class _ProfilePageState extends State<ProfilePage>
         _furaffinityUrl = result.furaffinityUrl;
         _patreonUrl = result.patreonUrl;
         _kofiUrl = result.kofiUrl;
+        _blueskyUrl = result.blueskyUrl;
+        _onlyfansUrl = result.onlyfansUrl;
         _tabCounts = result.tabCounts;
         _hasMore = result.pagination.next != null;
         _currentPage = result.pagination.page;
@@ -233,6 +237,20 @@ class _ProfilePageState extends State<ProfilePage>
         icon: Icons.coffee,
         label: 'Ko-fi',
         url: _kofiUrl!,
+      ));
+    }
+    if (_blueskyUrl != null && _blueskyUrl!.isNotEmpty) {
+      links.add(_SocialLinkData(
+        icon: Icons.cloud,
+        label: 'Bluesky',
+        url: _blueskyUrl!,
+      ));
+    }
+    if (_onlyfansUrl != null && _onlyfansUrl!.isNotEmpty) {
+      links.add(_SocialLinkData(
+        icon: Icons.favorite_border,
+        label: 'OnlyFans',
+        url: _onlyfansUrl!,
       ));
     }
     return links;
