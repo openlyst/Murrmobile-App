@@ -246,6 +246,22 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     }
   }
 
+  void _pauseVideoIfNeeded() {
+    if (_controller != null &&
+        _controller!.value.isInitialized &&
+        _controller!.value.isPlaying) {
+      _controller!.pause();
+    }
+  }
+
+  void _resumeVideoIfNeeded() {
+    if (_controller != null &&
+        _controller!.value.isInitialized &&
+        !_controller!.value.isPlaying) {
+      _controller!.play();
+    }
+  }
+
   Future<bool> _onWillPop() async {
     if (_isFullscreen) {
       _toggleFullscreen();
@@ -1083,6 +1099,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                       const SizedBox(height: 14),
                       GestureDetector(
                         onTap: () {
+                          _pauseVideoIfNeeded();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -1090,7 +1107,9 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                 slug: medium.user.slug,
                               ),
                             ),
-                          );
+                          ).then((_) {
+                            if (mounted) _resumeVideoIfNeeded();
+                          });
                         },
                         child: Row(
                           children: [
@@ -1232,12 +1251,15 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                           children: medium.tags
                               .map((tag) => GestureDetector(
                                     onTap: () {
+                                      _pauseVideoIfNeeded();
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                           builder: (_) => SearchPage(initialQuery: tag.name),
                                         ),
-                                      );
+                                      ).then((_) {
+                                        if (mounted) _resumeVideoIfNeeded();
+                                      });
                                     },
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
@@ -1374,6 +1396,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                 viewerCanComment: _viewerCanComment,
                                 onDelete: _viewerCanComment ? _deleteComment : null,
                                 onReply: _viewerCanComment ? _replyToComment : null,
+                                onPauseVideo: _pauseVideoIfNeeded,
+                                onResumeVideo: _resumeVideoIfNeeded,
                               ))
                           .toList(),
                     ),
@@ -1752,12 +1776,16 @@ class _CommentTile extends StatefulWidget {
   final bool viewerCanComment;
   final Future<void> Function(String commentId)? onDelete;
   final Future<void> Function(String commentId, String body)? onReply;
+  final VoidCallback? onPauseVideo;
+  final VoidCallback? onResumeVideo;
 
   const _CommentTile({
     required this.comment,
     this.viewerCanComment = false,
     this.onDelete,
     this.onReply,
+    this.onPauseVideo,
+    this.onResumeVideo,
   });
 
   @override
@@ -1820,12 +1848,15 @@ class _CommentTileState extends State<_CommentTile> {
             children: [
               GestureDetector(
                 onTap: () {
+                  widget.onPauseVideo?.call();
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => ProfilePage(slug: comment.user.slug),
                     ),
-                  );
+                  ).then((_) {
+                    if (mounted) widget.onResumeVideo?.call();
+                  });
                 },
                 child: ClipOval(
                   child: comment.user.avatarUrl != null
@@ -1867,12 +1898,15 @@ class _CommentTileState extends State<_CommentTile> {
                       children: [
                         GestureDetector(
                           onTap: () {
+                            widget.onPauseVideo?.call();
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (_) => ProfilePage(slug: comment.user.slug),
                               ),
-                            );
+                            ).then((_) {
+                              if (mounted) widget.onResumeVideo?.call();
+                            });
                           },
                           child: Text(
                             comment.user.name,
@@ -2059,6 +2093,8 @@ class _CommentTileState extends State<_CommentTile> {
                                     viewerCanComment: widget.viewerCanComment,
                                     onDelete: widget.onDelete,
                                     onReply: widget.onReply,
+                                    onPauseVideo: widget.onPauseVideo,
+                                    onResumeVideo: widget.onResumeVideo,
                                   ))
                               .toList(),
                         ),
