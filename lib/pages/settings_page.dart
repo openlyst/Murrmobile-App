@@ -88,7 +88,8 @@ class _SettingsPageState extends State<SettingsPage> {
     final serverQuality = _props?['video_quality_options'] as List<dynamic>? ?? [];
 
     final themes = [
-      {'name': 'Auto (from Murrtube)', 'value': 'auto'},
+      {'name': 'Auto (System)', 'value': 'auto'},
+      {'name': 'Pull from Murrtube', 'value': 'murrtube', 'note': 'Only dark mode available'},
       {'name': 'Dark', 'value': 'dark'},
       {'name': 'Light', 'value': 'light'},
       {'name': 'AMOLED', 'value': 'amoled'},
@@ -255,7 +256,8 @@ class _SettingsPageState extends State<SettingsPage> {
                               options: themes.map((t) {
                                 final name = t['name'] ?? 'Theme';
                                 final value = t['value'] ?? name.toLowerCase();
-                                return _SelectionOption(label: name, value: value);
+                                final note = t['note'];
+                                return _SelectionOption(label: name, value: value, note: note);
                               }).toList(),
                               selected: current,
                               onSelect: (value) => themeProvider.setTheme(value),
@@ -510,6 +512,15 @@ class _SettingsPageState extends State<SettingsPage> {
                           fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
                         ),
                       ),
+                      subtitle: opt.note != null
+                          ? Text(
+                              opt.note!,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: mutedColor,
+                              ),
+                            )
+                          : null,
                       onTap: () {
                         onSelect(opt.value);
                         Navigator.of(ctx).pop();
@@ -556,5 +567,6 @@ class _SettingsPageState extends State<SettingsPage> {
 class _SelectionOption {
   final String label;
   final String value;
-  const _SelectionOption({required this.label, required this.value});
+  final String? note;
+  const _SelectionOption({required this.label, required this.value, this.note});
 }
