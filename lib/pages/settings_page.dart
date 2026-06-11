@@ -68,6 +68,11 @@ class _SettingsPageState extends State<SettingsPage> {
         _props = props;
         _loading = false;
       });
+      // Refresh theme from murrtube when settings are loaded
+      if (mounted) {
+        final themeProvider = context.read<ThemeProvider>();
+        await themeProvider.refreshMurrtubeTheme();
+      }
     } catch (e) {
       debugPrint('SettingsPage error: $e');
       setState(() {
@@ -83,6 +88,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final serverQuality = _props?['video_quality_options'] as List<dynamic>? ?? [];
 
     final themes = [
+      {'name': 'Auto (from Murrtube)', 'value': 'auto'},
       {'name': 'Dark', 'value': 'dark'},
       {'name': 'Light', 'value': 'light'},
       {'name': 'AMOLED', 'value': 'amoled'},

@@ -8,7 +8,7 @@ class AppPreferences {
 
   static Future<String> getTheme() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_themeKey) ?? 'dark';
+    return prefs.getString(_themeKey) ?? 'auto';
   }
 
   static Future<void> setTheme(String theme) async {
