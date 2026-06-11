@@ -61,11 +61,6 @@ class AgeConfirmationPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () => _resetConfirmation(context),
-                  child: const Text('Reset (debug)'),
-                ),
               ],
             ),
           ),
@@ -86,19 +81,6 @@ class AgeConfirmationPage extends StatelessWidget {
         const SnackBar(
           content: Text('Please close the app and uninstall it'),
           duration: Duration(seconds: 5),
-        ),
-      );
-    }
-  }
-
-  Future<void> _resetConfirmation(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('age_confirmed');
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Confirmation reset. Restart app to test again.'),
-          duration: Duration(seconds: 3),
         ),
       );
     }
