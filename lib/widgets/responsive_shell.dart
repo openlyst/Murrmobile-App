@@ -434,7 +434,6 @@ class _DesktopLayout extends StatelessWidget {
               ],
             ),
           ),
-          Container(width: 1, color: theme.dividerColor),
           Expanded(
             child: items[selectedIndex].page,
           ),
