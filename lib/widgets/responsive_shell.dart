@@ -237,7 +237,7 @@ class _DesktopLayout extends StatelessWidget {
               children: [
                 const SizedBox(height: 24),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: EdgeInsets.symmetric(horizontal: isCollapsed ? 8 : 20),
                   child: Row(
                     mainAxisAlignment: isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
                     children: [
@@ -346,7 +346,7 @@ class _DesktopLayout extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  padding: EdgeInsets.symmetric(horizontal: isCollapsed ? 8 : 12),
                   child: Material(
                     color: Colors.transparent,
                     borderRadius: BorderRadius.circular(12),
@@ -354,8 +354,8 @@ class _DesktopLayout extends StatelessWidget {
                       onTap: onToggleCollapse,
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isCollapsed ? 8 : 16,
                           vertical: 14,
                         ),
                         child: Row(
