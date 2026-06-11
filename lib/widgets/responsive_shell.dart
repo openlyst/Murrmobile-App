@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/murrtube_api.dart';
 import '../pages/home_page.dart';
 import '../pages/search_page.dart';
@@ -6,7 +7,7 @@ import '../pages/upload_page.dart';
 import '../pages/notifications_page.dart';
 import '../pages/settings_page.dart';
 import '../pages/profile_page.dart';
-import '../utils/app_preferences.dart';
+import '../providers/navigation_provider.dart';
 
 class NavItem {
   final String label;
@@ -33,7 +34,6 @@ class ResponsiveShell extends StatefulWidget {
 class _ResponsiveShellState extends State<ResponsiveShell> {
   late int _selectedIndex;
   bool _wasLoggedIn = false;
-  String _navigationMode = 'collapsed_sidebar';
 
   List<NavItem> get _items {
     final base = <NavItem>[
@@ -80,14 +80,6 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     super.initState();
     _selectedIndex = widget.initialIndex;
     _wasLoggedIn = MurrtubeApi.isAuthenticated;
-    _loadSidebarPreference();
-  }
-
-  Future<void> _loadSidebarPreference() async {
-    final navigationMode = await AppPreferences.getNavigationMode();
-    if (mounted) {
-      setState(() => _navigationMode = navigationMode);
-    }
   }
 
   @override
@@ -111,8 +103,10 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isDesktop = width >= 900;
+    final navigationProvider = context.watch<NavigationProvider>();
+    final navigationMode = navigationProvider.navigationMode;
 
-    if (_navigationMode == 'collapsed_sidebar') {
+    if (navigationMode == 'collapsed_sidebar') {
       return _DesktopLayout(
         items: _items,
         selectedIndex: _selectedIndex,

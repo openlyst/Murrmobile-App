@@ -8,6 +8,7 @@ import '../services/murrtube_api.dart';
 import '../utils/cookie_loader.dart';
 import '../utils/app_preferences.dart';
 import '../providers/theme_provider.dart';
+import '../providers/navigation_provider.dart';
 import 'login_page.dart';
 import 'profile_page.dart';
 
@@ -23,7 +24,6 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _loading = true;
   bool _wasLoggedIn = false;
   String _videoQuality = 'auto';
-  String _navigationMode = 'collapsed_sidebar';
 
   @override
   void initState() {
@@ -35,12 +35,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _loadLocal() async {
     final quality = await AppPreferences.getVideoQuality();
-    final navigationMode = await AppPreferences.getNavigationMode();
     if (mounted) {
-      setState(() {
-        _videoQuality = quality;
-        _navigationMode = navigationMode;
-      });
+      setState(() => _videoQuality = quality);
     }
   }
 
@@ -263,17 +259,16 @@ class _SettingsPageState extends State<SettingsPage> {
                           _buildActionTile(
                             icon: Icons.view_sidebar_outlined,
                             label: 'Small Screen Navigation',
-                            subtitle: _getNavigationModeLabel(),
+                            subtitle: _getNavigationModeLabel(context),
                             onTap: () => _showSelectionSheet(
                               title: 'Select Small Screen Navigation',
                               options: const [
                                 _SelectionOption(label: 'Collapsed Sidebar', value: 'collapsed_sidebar'),
                                 _SelectionOption(label: 'Bottom Bar', value: 'bottom_bar'),
                               ],
-                              selected: _navigationMode,
+                              selected: context.watch<NavigationProvider>().navigationMode,
                               onSelect: (value) async {
-                                await AppPreferences.setNavigationMode(value);
-                                setState(() => _navigationMode = value);
+                                await context.read<NavigationProvider>().setNavigationMode(value);
                               },
                             ),
                           ),
@@ -539,8 +534,9 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  String _getNavigationModeLabel() {
-    switch (_navigationMode) {
+  String _getNavigationModeLabel(BuildContext context) {
+    final navigationMode = context.watch<NavigationProvider>().navigationMode;
+    switch (navigationMode) {
       case 'collapsed_sidebar':
         return 'Collapsed Sidebar';
       case 'bottom_bar':
