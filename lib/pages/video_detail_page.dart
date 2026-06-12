@@ -539,7 +539,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                       // Mute button
                       Positioned(
                         top: 12,
-                        right: 60,
+                        right: 64,
                         child: GestureDetector(
                           onTap: _toggleMute,
                           child: Container(
@@ -1103,7 +1103,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                     // Mute button
                     Positioned(
                       top: 12,
-                      right: 52,
+                      right: 56,
                       child: GestureDetector(
                         onTap: _toggleMute,
                         child: Container(
