@@ -954,4 +954,42 @@ class MurrtubeApi {
       throw HttpException('HTTP ${response.statusCode}');
     }
   }
+
+  static Future<List<Tag>> editTags({
+    required String shortCode,
+    required List<String> additions,
+    required List<String> removals,
+  }) async {
+    final token = await _fetchCsrfToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl/tag_edits'),
+      headers: {
+        'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Referer': baseUrl,
+        'Origin': baseUrl,
+        'X-Requested-With': 'XMLHttpRequest',
+        'x-csrf-token': token,
+        if (_cookieString != null) 'Cookie': _cookieString!,
+      },
+      body: jsonEncode({
+        'taggable_type': 'Medium',
+        'short_code': shortCode,
+        'additions': additions,
+        'removals': removals,
+      }),
+    );
+    _updateCookiesFromResponse(response);
+    debugPrint('editTags status: ${response.statusCode}');
+    if (response.statusCode != 200) {
+      throw HttpException('HTTP ${response.statusCode}');
+    }
+    final json = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    final tags = (json['tags'] as List<dynamic>? ?? [])
+        .map((t) => Tag.fromJson(t as Map<String, dynamic>))
+        .toList();
+    return tags;
+  }
 }
