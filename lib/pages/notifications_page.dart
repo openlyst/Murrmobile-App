@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/notification.dart';
 import '../services/murrtube_api.dart';
+import 'video_detail_page.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
@@ -121,9 +122,17 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                 return _NotificationCard(
                                   item: item,
                                   onTap: () {
-                                    if (item.url != null) {
-                                      // Navigate to URL
-                                    }
+                                    if (item.url == null) return;
+                                    // Extract short code from /v/ICYP or /v/ICYP#comment-...
+                                    final match = RegExp(r'/v/([^/#]+)').firstMatch(item.url!);
+                                    if (match == null) return;
+                                    final shortCode = match.group(1)!;
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => VideoDetailPage(shortCode: shortCode),
+                                      ),
+                                    );
                                   },
                                 );
                               },
