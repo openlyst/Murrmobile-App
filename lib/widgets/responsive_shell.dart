@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/murrtube_api.dart';
+import '../utils/page_transitions.dart';
 import '../pages/home_page.dart';
 import '../pages/search_page.dart';
 import '../pages/upload_page.dart';
@@ -33,6 +34,7 @@ class ResponsiveShell extends StatefulWidget {
 class _ResponsiveShellState extends State<ResponsiveShell> {
   late int _selectedIndex;
   bool _wasLoggedIn = false;
+  List<GlobalKey<NavigatorState>> _navigatorKeys = [];
 
   List<NavItem> get _items {
     final base = <NavItem>[
@@ -74,11 +76,19 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     return base;
   }
 
+  void _updateNavigatorKeys() {
+    final count = _items.length;
+    if (_navigatorKeys.length != count) {
+      _navigatorKeys = List.generate(count, (_) => GlobalKey<NavigatorState>());
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _selectedIndex = widget.initialIndex;
     _wasLoggedIn = MurrtubeApi.isAuthenticated;
+    _updateNavigatorKeys();
   }
 
   @override
@@ -90,12 +100,50 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
       if (_selectedIndex >= _items.length) {
         _selectedIndex = 0;
       }
+      _updateNavigatorKeys();
       setState(() {});
     }
   }
 
   void _onItemTapped(int index) {
+    if (index == _selectedIndex) {
+      _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
+    }
     setState(() => _selectedIndex = index);
+  }
+
+  bool _canPopRoot() {
+    final navigator = _navigatorKeys[_selectedIndex].currentState;
+    return navigator == null || !navigator.canPop();
+  }
+
+  Widget _buildTabNavigator(int index, Widget page) {
+    return Navigator(
+      key: _navigatorKeys[index],
+      onGenerateRoute: (settings) => AppPageRoute(
+        builder: (_) => page,
+        settings: settings,
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    return PopScope(
+      canPop: _canPopRoot(),
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          _navigatorKeys[_selectedIndex].currentState?.pop();
+        }
+      },
+      child: SafeArea(
+        child: IndexedStack(
+          index: _selectedIndex,
+          children: _items.asMap().entries.map((e) {
+            return _buildTabNavigator(e.key, e.value.page);
+          }).toList(),
+        ),
+      ),
+    );
   }
 
   @override
@@ -105,24 +153,24 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     final navigationProvider = context.watch<NavigationProvider>();
     final navigationMode = navigationProvider.navigationMode;
 
-    // On desktop, always use sidebar regardless of preference
     if (isDesktop) {
       return _DesktopLayout(
         items: _items,
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
+        navigatorKeys: _navigatorKeys,
         isCollapsed: false,
         onToggleCollapse: () {},
         canExpand: false,
       );
     }
 
-    // On small screens, respect the navigation mode preference
     if (navigationMode == 'collapsed_sidebar') {
       return _DesktopLayout(
         items: _items,
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
+        navigatorKeys: _navigatorKeys,
         isCollapsed: true,
         onToggleCollapse: () {},
         canExpand: false,
@@ -130,12 +178,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     }
 
     return Scaffold(
-      body: SafeArea(
-        child: IndexedStack(
-          index: _selectedIndex,
-          children: _items.map((item) => item.page).toList(),
-        ),
-      ),
+      body: _buildBody(),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: _onItemTapped,
@@ -157,6 +200,7 @@ class _DesktopLayout extends StatelessWidget {
   final List<NavItem> items;
   final int selectedIndex;
   final ValueChanged<int> onItemTapped;
+  final List<GlobalKey<NavigatorState>> navigatorKeys;
   final bool isCollapsed;
   final VoidCallback onToggleCollapse;
   final bool canExpand;
@@ -165,6 +209,7 @@ class _DesktopLayout extends StatelessWidget {
     required this.items,
     required this.selectedIndex,
     required this.onItemTapped,
+    required this.navigatorKeys,
     required this.isCollapsed,
     required this.onToggleCollapse,
     this.canExpand = true,
@@ -234,9 +279,25 @@ class _DesktopLayout extends StatelessWidget {
           ),
           const VerticalDivider(width: 1, thickness: 1),
           Expanded(
-            child: IndexedStack(
-              index: selectedIndex,
-              children: items.map((item) => item.page).toList(),
+            child: PopScope(
+              canPop: navigatorKeys[selectedIndex].currentState?.canPop() != true,
+              onPopInvokedWithResult: (didPop, _) {
+                if (!didPop) {
+                  navigatorKeys[selectedIndex].currentState?.pop();
+                }
+              },
+              child: IndexedStack(
+                index: selectedIndex,
+                children: items.asMap().entries.map((e) {
+                  return Navigator(
+                    key: navigatorKeys[e.key],
+                    onGenerateRoute: (settings) => AppPageRoute(
+                      builder: (_) => e.value.page,
+                      settings: settings,
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
           ),
         ],
