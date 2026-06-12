@@ -192,6 +192,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
 
   Future<void> _toggleLike() async {
     if (_medium == null || !_viewerCanLike) return;
+    HapticFeedback.lightImpact();
     final medium = _medium!;
     final wasLiked = _viewerLiked;
     setState(() {
@@ -312,14 +313,6 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
         !_controller!.value.isPlaying) {
       _controller!.play();
     }
-  }
-
-  Future<bool> _onWillPop() async {
-    if (_isFullscreen) {
-      _toggleFullscreen();
-      return false;
-    }
-    return true;
   }
 
   void _onDoubleTap(bool forward) {
@@ -467,8 +460,13 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     if (_isFullscreen) {
       return Scaffold(
         backgroundColor: Colors.black,
-        body: WillPopScope(
-          onWillPop: _onWillPop,
+        body: PopScope(
+          canPop: !_isFullscreen,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop && _isFullscreen) {
+              _toggleFullscreen();
+            }
+          },
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -771,8 +769,13 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
       );
     }
 
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    return PopScope(
+      canPop: !_isFullscreen,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _isFullscreen) {
+          _toggleFullscreen();
+        }
+      },
       child: Scaffold(
         backgroundColor: Theme.of(context).colorScheme.background,
         body: SafeArea(
