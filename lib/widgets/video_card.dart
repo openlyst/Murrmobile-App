@@ -77,13 +77,13 @@ class VideoCard extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 6),
+                padding: const EdgeInsets.fromLTRB(8, 6, 8, 4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       media.title,
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
@@ -92,7 +92,7 @@ class VideoCard extends StatelessWidget {
                         color: colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     Row(
                       children: [
                         if (media.user.avatarUrl != null)
@@ -133,7 +133,6 @@ class VideoCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 3),
                     Row(
                       children: [
                         Icon(

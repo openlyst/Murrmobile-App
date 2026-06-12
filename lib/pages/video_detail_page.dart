@@ -1488,7 +1488,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                           physics: const NeverScrollableScrollPhysics(),
                           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: cols,
-                            childAspectRatio: 10 / 14,
+                            childAspectRatio: 10 / 11,
                             crossAxisSpacing: 12,
                             mainAxisSpacing: 12,
                           ),

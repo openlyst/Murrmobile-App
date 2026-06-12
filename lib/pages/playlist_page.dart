@@ -292,7 +292,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
                   return SliverGrid(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: cols,
-                      childAspectRatio: 10 / 14,
+                      childAspectRatio: 10 / 11,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                     ),

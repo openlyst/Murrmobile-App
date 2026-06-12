@@ -600,7 +600,7 @@ class _ProfilePageState extends State<ProfilePage>
             padding: const EdgeInsets.all(16),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: cols,
-              childAspectRatio: 10 / 14,
+              childAspectRatio: 10 / 11,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
             ),
