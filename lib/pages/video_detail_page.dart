@@ -17,8 +17,9 @@ import 'search_page.dart';
 class VideoDetailPage extends StatefulWidget {
   final String shortCode;
   final String? commentId;
+  final String? heroTag;
 
-  const VideoDetailPage({super.key, required this.shortCode, this.commentId});
+  const VideoDetailPage({super.key, required this.shortCode, this.commentId, this.heroTag});
 
   @override
   State<VideoDetailPage> createState() => _VideoDetailPageState();
@@ -802,17 +803,20 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                 ),
                               )
                             else
-                              CachedNetworkImage(
-                                imageUrl: medium.thumbnailUrl,
-                                fit: BoxFit.contain,
-                                placeholder: (_, __) => Container(
-                                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                                ),
-                                errorWidget: (_, __, ___) => Container(
-                                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                                  child: Icon(
-                                    Icons.broken_image_outlined,
-                                    color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
+                              Hero(
+                                tag: widget.heroTag ?? 'video-thumb-${widget.shortCode}',
+                                child: CachedNetworkImage(
+                                  imageUrl: medium.thumbnailUrl,
+                                  fit: BoxFit.contain,
+                                  placeholder: (_, __) => Container(
+                                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                  ),
+                                  errorWidget: (_, __, ___) => Container(
+                                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                    child: Icon(
+                                      Icons.broken_image_outlined,
+                                      color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
+                                    ),
                                   ),
                                 ),
                               ),

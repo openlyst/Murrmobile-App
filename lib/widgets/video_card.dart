@@ -5,11 +5,13 @@ import '../models/media.dart';
 class VideoCard extends StatelessWidget {
   final Media media;
   final VoidCallback onTap;
+  final String? heroTag;
 
   const VideoCard({
     super.key,
     required this.media,
     required this.onTap,
+    this.heroTag,
   });
 
   @override
@@ -40,27 +42,30 @@ class VideoCard extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    CachedNetworkImage(
-                      imageUrl: media.thumbnailUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(
-                        color: colorScheme.surfaceContainerHighest,
-                        child: Center(
-                          child: SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: colorScheme.primary,
+                    Hero(
+                      tag: heroTag ?? 'video-thumb-${media.shortCode}',
+                      child: CachedNetworkImage(
+                        imageUrl: media.thumbnailUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => Container(
+                          color: colorScheme.surfaceContainerHighest,
+                          child: Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: colorScheme.primary,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      errorWidget: (_, __, ___) => Container(
-                        color: colorScheme.surfaceContainerHighest,
-                        child: Icon(
-                          Icons.broken_image_outlined,
-                          color: mutedColor,
+                        errorWidget: (_, __, ___) => Container(
+                          color: colorScheme.surfaceContainerHighest,
+                          child: Icon(
+                            Icons.broken_image_outlined,
+                            color: mutedColor,
+                          ),
                         ),
                       ),
                     ),
