@@ -107,34 +107,37 @@ class _HomePageState extends State<HomePage> {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                child: Row(
-                  children: [
-                    _PillTab(
-                      label: 'Trending',
-                      active: _currentTab == 'trending',
-                      onTap: () => _switchTab('trending'),
-                    ),
-                    const SizedBox(width: 10),
-                    _PillTab(
-                      label: 'For You',
-                      active: _currentTab == 'for_you',
-                      onTap: () => _switchTab('for_you'),
-                    ),
-                    const SizedBox(width: 10),
-                    _PillTab(
-                      label: 'Latest',
-                      active: _currentTab == 'latest',
-                      onTap: () => _switchTab('latest'),
-                    ),
-                    if (MurrtubeApi.isAuthenticated) ...[
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _PillTab(
+                        label: 'Trending',
+                        active: _currentTab == 'trending',
+                        onTap: () => _switchTab('trending'),
+                      ),
                       const SizedBox(width: 10),
                       _PillTab(
-                        label: 'Subscriptions',
-                        active: _currentTab == 'subscriptions',
-                        onTap: () => _switchTab('subscriptions'),
+                        label: 'For You',
+                        active: _currentTab == 'for_you',
+                        onTap: () => _switchTab('for_you'),
                       ),
+                      const SizedBox(width: 10),
+                      _PillTab(
+                        label: 'Latest',
+                        active: _currentTab == 'latest',
+                        onTap: () => _switchTab('latest'),
+                      ),
+                      if (MurrtubeApi.isAuthenticated) ...[
+                        const SizedBox(width: 10),
+                        _PillTab(
+                          label: 'Subscriptions',
+                          active: _currentTab == 'subscriptions',
+                          onTap: () => _switchTab('subscriptions'),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),
