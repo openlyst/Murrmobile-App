@@ -59,7 +59,7 @@ class _CookieSetupPageState extends State<CookieSetupPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     return Scaffold(
-      backgroundColor: colorScheme.background,
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(24),
@@ -151,7 +151,7 @@ class _CookieSetupPageState extends State<CookieSetupPage> {
                       hintStyle:
                           TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey),
                       filled: true,
-                      fillColor: Theme.of(context).colorScheme.background,
+                      fillColor: Theme.of(context).colorScheme.surface,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,

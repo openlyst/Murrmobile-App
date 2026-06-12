@@ -89,7 +89,7 @@ class _UploadPageState extends State<UploadPage> {
                           hintText: 'Enter video title...',
                           hintStyle: TextStyle(color: mutedColor),
                           filled: true,
-                          fillColor: colorScheme.background,
+                          fillColor: colorScheme.surface,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -112,7 +112,7 @@ class _UploadPageState extends State<UploadPage> {
                           hintText: 'Describe your video...',
                           hintStyle: TextStyle(color: mutedColor),
                           filled: true,
-                          fillColor: colorScheme.background,
+                          fillColor: colorScheme.surface,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,

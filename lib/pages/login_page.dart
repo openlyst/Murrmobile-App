@@ -195,7 +195,7 @@ class _LoginPageState extends State<LoginPage> {
                   hintText: 'Paste value here...',
                   hintStyle: TextStyle(color: mutedColor),
                   filled: true,
-                  fillColor: colorScheme.background,
+                  fillColor: colorScheme.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide.none,
@@ -232,7 +232,7 @@ class _LoginPageState extends State<LoginPage> {
     final colorScheme = theme.colorScheme;
     final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     return Scaffold(
-      backgroundColor: colorScheme.background,
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(24),
