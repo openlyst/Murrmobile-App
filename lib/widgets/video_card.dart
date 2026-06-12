@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/media.dart';
 
 class VideoCard extends StatelessWidget {
   final Media media;
   final VoidCallback onTap;
+  final String? heroTag;
 
   const VideoCard({
     super.key,
     required this.media,
     required this.onTap,
+    this.heroTag,
   });
 
   @override
@@ -20,7 +23,10 @@ class VideoCard extends StatelessWidget {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
@@ -40,27 +46,30 @@ class VideoCard extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    CachedNetworkImage(
-                      imageUrl: media.thumbnailUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(
-                        color: colorScheme.surfaceContainerHighest,
-                        child: Center(
-                          child: SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: colorScheme.primary,
+                    Hero(
+                      tag: heroTag ?? 'video-thumb-${media.shortCode}',
+                      child: CachedNetworkImage(
+                        imageUrl: media.thumbnailUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => Container(
+                          color: colorScheme.surfaceContainerHighest,
+                          child: Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: colorScheme.primary,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      errorWidget: (_, __, ___) => Container(
-                        color: colorScheme.surfaceContainerHighest,
-                        child: Icon(
-                          Icons.broken_image_outlined,
-                          color: mutedColor,
+                        errorWidget: (_, __, ___) => Container(
+                          color: colorScheme.surfaceContainerHighest,
+                          child: Icon(
+                            Icons.broken_image_outlined,
+                            color: mutedColor,
+                          ),
                         ),
                       ),
                     ),
@@ -68,13 +77,13 @@ class VideoCard extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.fromLTRB(8, 6, 8, 4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       media.title,
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
@@ -83,7 +92,7 @@ class VideoCard extends StatelessWidget {
                         color: colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 3),
                     Row(
                       children: [
                         if (media.user.avatarUrl != null)
@@ -124,7 +133,6 @@ class VideoCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
                     Row(
                       children: [
                         Icon(

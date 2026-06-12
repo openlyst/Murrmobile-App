@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/murrtube_api.dart';
+import '../utils/page_transitions.dart';
 import '../pages/home_page.dart';
 import '../pages/search_page.dart';
 import '../pages/upload_page.dart';
 import '../pages/notifications_page.dart';
 import '../pages/settings_page.dart';
-import '../pages/profile_page.dart';
 import '../providers/navigation_provider.dart';
 
 class NavItem {
@@ -34,6 +34,7 @@ class ResponsiveShell extends StatefulWidget {
 class _ResponsiveShellState extends State<ResponsiveShell> {
   late int _selectedIndex;
   bool _wasLoggedIn = false;
+  List<GlobalKey<NavigatorState>> _navigatorKeys = [];
 
   List<NavItem> get _items {
     final base = <NavItem>[
@@ -75,11 +76,19 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     return base;
   }
 
+  void _updateNavigatorKeys() {
+    final count = _items.length;
+    if (_navigatorKeys.length != count) {
+      _navigatorKeys = List.generate(count, (_) => GlobalKey<NavigatorState>());
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _selectedIndex = widget.initialIndex;
     _wasLoggedIn = MurrtubeApi.isAuthenticated;
+    _updateNavigatorKeys();
   }
 
   @override
@@ -91,12 +100,50 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
       if (_selectedIndex >= _items.length) {
         _selectedIndex = 0;
       }
+      _updateNavigatorKeys();
       setState(() {});
     }
   }
 
   void _onItemTapped(int index) {
+    if (index == _selectedIndex) {
+      _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
+    }
     setState(() => _selectedIndex = index);
+  }
+
+  bool _canPopRoot() {
+    final navigator = _navigatorKeys[_selectedIndex].currentState;
+    return navigator == null || !navigator.canPop();
+  }
+
+  Widget _buildTabNavigator(int index, Widget page) {
+    return Navigator(
+      key: _navigatorKeys[index],
+      onGenerateRoute: (settings) => AppPageRoute(
+        builder: (_) => page,
+        settings: settings,
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    return PopScope(
+      canPop: _canPopRoot(),
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          _navigatorKeys[_selectedIndex].currentState?.pop();
+        }
+      },
+      child: SafeArea(
+        child: IndexedStack(
+          index: _selectedIndex,
+          children: _items.asMap().entries.map((e) {
+            return _buildTabNavigator(e.key, e.value.page);
+          }).toList(),
+        ),
+      ),
+    );
   }
 
   @override
@@ -106,103 +153,44 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     final navigationProvider = context.watch<NavigationProvider>();
     final navigationMode = navigationProvider.navigationMode;
 
-    // On desktop, always use sidebar regardless of preference
     if (isDesktop) {
       return _DesktopLayout(
         items: _items,
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
+        navigatorKeys: _navigatorKeys,
         isCollapsed: false,
         onToggleCollapse: () {},
         canExpand: false,
       );
     }
 
-    // On small screens, respect the navigation mode preference
     if (navigationMode == 'collapsed_sidebar') {
       return _DesktopLayout(
         items: _items,
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
+        navigatorKeys: _navigatorKeys,
         isCollapsed: true,
         onToggleCollapse: () {},
         canExpand: false,
       );
     }
 
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     return Scaffold(
-      body: SafeArea(
-        child: _items[_selectedIndex].page,
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          border: Border(
-            top: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
-          ),
-        ),
-        child: SafeArea(
-          child: SizedBox(
-            height: 64,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(_items.length, (index) {
-                final item = _items[index];
-                final isSelected = index == _selectedIndex;
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => _onItemTapped(index),
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 4,
-                            ),
-                            decoration: isSelected
-                                ? BoxDecoration(
-                                    color: colorScheme.primary
-                                        .withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(20),
-                                  )
-                                : null,
-                            child: Icon(
-                              isSelected ? item.activeIcon : item.icon,
-                              color: isSelected
-                                  ? colorScheme.primary
-                                  : mutedColor,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            item.label,
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
-                              color: isSelected
-                                  ? colorScheme.primary
-                                  : mutedColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-        ),
+      body: _buildBody(),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: _onItemTapped,
+        destinations: _items
+            .map(
+              (item) => NavigationDestination(
+                icon: Icon(item.icon),
+                selectedIcon: Icon(item.activeIcon),
+                label: item.label,
+              ),
+            )
+            .toList(),
       ),
     );
   }
@@ -212,6 +200,7 @@ class _DesktopLayout extends StatelessWidget {
   final List<NavItem> items;
   final int selectedIndex;
   final ValueChanged<int> onItemTapped;
+  final List<GlobalKey<NavigatorState>> navigatorKeys;
   final bool isCollapsed;
   final VoidCallback onToggleCollapse;
   final bool canExpand;
@@ -220,6 +209,7 @@ class _DesktopLayout extends StatelessWidget {
     required this.items,
     required this.selectedIndex,
     required this.onItemTapped,
+    required this.navigatorKeys,
     required this.isCollapsed,
     required this.onToggleCollapse,
     this.canExpand = true,
@@ -229,221 +219,86 @@ class _DesktopLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
-    final sidebarWidth = isCollapsed ? 72.0 : 240.0;
-    
+
     return Scaffold(
       body: Row(
         children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeInOut,
-            width: sidebarWidth,
-            color: colorScheme.surface,
-            child: Column(
-              children: [
-                const SizedBox(height: 24),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: isCollapsed ? 8 : 20),
-                  child: Row(
-                    mainAxisAlignment: isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.asset(
-                          'assets/icon.png',
-                          width: 36,
-                          height: 36,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      if (!isCollapsed) ...[
-                        const SizedBox(width: 12),
-                        Text(
-                          'Murrmobile',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    itemCount: items.length,
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      final isSelected = index == selectedIndex;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Material(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
-                          child: InkWell(
-                            onTap: () => onItemTapped(index),
-                            borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: isCollapsed ? 12 : 16,
-                                vertical: 14,
-                              ),
-                              decoration: isSelected
-                                  ? BoxDecoration(
-                                      color: colorScheme.primary
-                                          .withValues(alpha: 0.12),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: colorScheme.primary
-                                            .withValues(alpha: 0.2),
-                                        width: 1,
-                                      ),
-                                    )
-                                  : null,
-                              child: Row(
-                                mainAxisAlignment: isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
-                                children: [
-                                  Icon(
-                                    isSelected
-                                        ? item.activeIcon
-                                        : item.icon,
-                                    color: isSelected
-                                        ? colorScheme.primary
-                                        : mutedColor,
-                                    size: 22,
-                                  ),
-                                  if (!isCollapsed) ...[
-                                    const SizedBox(width: 14),
-                                    Text(
-                                      item.label,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: isSelected
-                                            ? FontWeight.w600
-                                            : FontWeight.w500,
-                                        color: isSelected
-                                            ? colorScheme.primary
-                                            : mutedColor,
-                                      ),
-                                    ),
-                                  ],
-                                  if (isSelected && !isCollapsed) ...[
-                                    const Spacer(),
-                                    Container(
-                                      width: 6,
-                                      height: 6,
-                                      decoration: BoxDecoration(
-                                        color: colorScheme.primary,
-                                        borderRadius: BorderRadius.circular(3),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 16),
-                if (canExpand)
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: isCollapsed ? 8 : 12),
-                    child: Material(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
-                      child: InkWell(
-                        onTap: onToggleCollapse,
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isCollapsed ? 8 : 16,
-                            vertical: 14,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
-                            children: [
-                              Icon(
-                                isCollapsed ? Icons.chevron_right : Icons.chevron_left,
-                                color: mutedColor,
-                                size: 22,
-                              ),
-                              if (!isCollapsed) ...[
-                                const SizedBox(width: 14),
-                                Text(
-                                  'Collapse',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: mutedColor,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
+          NavigationRail(
+            extended: !isCollapsed,
+            minExtendedWidth: 220,
+            selectedIndex: selectedIndex,
+            onDestinationSelected: onItemTapped,
+            leading: Padding(
+              padding: const EdgeInsets.only(top: 16, bottom: 8),
+              child: Row(
+                mainAxisAlignment:
+                    isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.asset(
+                      'assets/icon.png',
+                      width: 36,
+                      height: 36,
+                      fit: BoxFit.cover,
                     ),
                   ),
-                const SizedBox(height: 8),
-                if (MurrtubeApi.isAuthenticated && !isCollapsed && canExpand)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Material(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
-                      child: InkWell(
-                        onTap: () {
-                          final slug = MurrtubeApi.currentUserSlug;
-                          if (slug != null) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ProfilePage(slug: slug),
-                              ),
-                            );
-                          }
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.person_outline,
-                                color: mutedColor,
-                                size: 22,
-                              ),
-                              const SizedBox(width: 14),
-                              Text(
-                                'Profile',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: mutedColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                  if (!isCollapsed) ...[
+                    const SizedBox(width: 12),
+                    Text(
+                      'Murrmobile',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.onSurface,
                       ),
                     ),
-                  ),
-                const SizedBox(height: 16),
-              ],
+                  ],
+                ],
+              ),
             ),
+            trailing: canExpand
+                ? IconButton(
+                    onPressed: onToggleCollapse,
+                    icon: Icon(
+                      isCollapsed
+                          ? Icons.chevron_right
+                          : Icons.chevron_left,
+                    ),
+                  )
+                : null,
+            destinations: items
+                .map(
+                  (item) => NavigationRailDestination(
+                    icon: Icon(item.icon),
+                    selectedIcon: Icon(item.activeIcon),
+                    label: Text(item.label),
+                  ),
+                )
+                .toList(),
           ),
+          const VerticalDivider(width: 1, thickness: 1),
           Expanded(
-            child: items[selectedIndex].page,
+            child: PopScope(
+              canPop: navigatorKeys[selectedIndex].currentState?.canPop() != true,
+              onPopInvokedWithResult: (didPop, _) {
+                if (!didPop) {
+                  navigatorKeys[selectedIndex].currentState?.pop();
+                }
+              },
+              child: IndexedStack(
+                index: selectedIndex,
+                children: items.asMap().entries.map((e) {
+                  return Navigator(
+                    key: navigatorKeys[e.key],
+                    onGenerateRoute: (settings) => AppPageRoute(
+                      builder: (_) => e.value.page,
+                      settings: settings,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
           ),
         ],
       ),

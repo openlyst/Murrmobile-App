@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/notification.dart';
 import '../services/murrtube_api.dart';
+import '../utils/page_transitions.dart';
 import 'video_detail_page.dart';
 
 class NotificationsPage extends StatefulWidget {
@@ -130,13 +131,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                     // Extract comment ID from fragment #comment-uuid
                                     final fragmentMatch = RegExp(r'#(.+)').firstMatch(item.url!);
                                     final commentId = fragmentMatch?.group(1);
-                                    Navigator.push(
+                                    pushPage(
                                       context,
-                                      MaterialPageRoute(
-                                        builder: (_) => VideoDetailPage(
-                                          shortCode: shortCode,
-                                          commentId: commentId,
-                                        ),
+                                      builder: (_) => VideoDetailPage(
+                                        shortCode: shortCode,
+                                        commentId: commentId,
                                       ),
                                     );
                                   },

@@ -4,6 +4,7 @@ import '../models/media.dart';
 import '../models/playlist.dart';
 import '../models/user.dart';
 import '../services/murrtube_api.dart';
+import '../utils/page_transitions.dart';
 import '../widgets/video_card.dart';
 import 'video_detail_page.dart';
 import 'playlist_page.dart';
@@ -188,11 +189,17 @@ class _ProfilePageState extends State<ProfilePage>
   }
 
   int _crossAxisCount(double width) {
-    if (width >= 1600) return 6;
-    if (width >= 1200) return 5;
+    if (width >= 1600) return 5;
+    if (width >= 1200) return 4;
     if (width >= 900) return 4;
     if (width >= 600) return 3;
     return 2;
+  }
+
+  double _cardAspectRatio(double width) {
+    if (width < 600) return 10 / 13;
+    if (width < 900) return 10 / 12;
+    return 10 / 11;
   }
 
   String _formatCount(int? n) {
@@ -599,7 +606,7 @@ class _ProfilePageState extends State<ProfilePage>
             padding: const EdgeInsets.all(16),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: cols,
-              childAspectRatio: 10 / 16,
+              childAspectRatio: _cardAspectRatio(constraints.maxWidth),
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
             ),
@@ -617,15 +624,16 @@ class _ProfilePageState extends State<ProfilePage>
                   ),
                 );
               }
+              final media = _media[index];
               return VideoCard(
-                media: _media[index],
+                media: media,
+                heroTag: 'video-thumb-${media.shortCode}',
                 onTap: () {
-                  Navigator.push(
+                  pushPage(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => VideoDetailPage(
-                        shortCode: _media[index].shortCode,
-                      ),
+                    builder: (_) => VideoDetailPage(
+                      shortCode: media.shortCode,
+                      heroTag: 'video-thumb-${media.shortCode}',
                     ),
                   );
                 },
@@ -666,13 +674,11 @@ class _ProfilePageState extends State<ProfilePage>
         return GestureDetector(
           onTap: () {
             if (_user == null) return;
-            Navigator.push(
+            pushPage(
               context,
-              MaterialPageRoute(
-                builder: (_) => PlaylistPage(
-                  userSlug: _user!.slug,
-                  playlistSlug: p.slug,
-                ),
+              builder: (_) => PlaylistPage(
+                userSlug: _user!.slug,
+                playlistSlug: p.slug,
               ),
             );
           },
@@ -772,7 +778,7 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     return Container(
-      color: Theme.of(context).colorScheme.background,
+      color: Theme.of(context).colorScheme.surface,
       child: tabBar,
     );
   }

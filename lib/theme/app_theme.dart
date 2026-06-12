@@ -130,6 +130,44 @@ class AppTheme {
             fontWeight: FontWeight.w400,
           ),
         ),
+        navigationBarTheme: NavigationBarThemeData(
+          indicatorColor: AppColors.primary.withValues(alpha: 0.2),
+          iconTheme: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const IconThemeData(color: AppColors.primary);
+            }
+            return const IconThemeData(color: AppColors.textMuted);
+          }),
+          labelTextStyle: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary,
+              );
+            }
+            return const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w400,
+              color: AppColors.textMuted,
+            );
+          }),
+        ),
+        navigationRailTheme: NavigationRailThemeData(
+          indicatorColor: AppColors.primary.withValues(alpha: 0.2),
+          selectedIconTheme: const IconThemeData(color: AppColors.primary),
+          unselectedIconTheme: const IconThemeData(color: AppColors.textMuted),
+          selectedLabelTextStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.primary,
+          ),
+          unselectedLabelTextStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textMuted,
+          ),
+        ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
@@ -275,6 +313,44 @@ class AppTheme {
             fontWeight: FontWeight.w400,
           ),
         ),
+        navigationBarTheme: NavigationBarThemeData(
+          indicatorColor: LightColors.primary.withValues(alpha: 0.15),
+          iconTheme: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const IconThemeData(color: LightColors.primary);
+            }
+            return const IconThemeData(color: LightColors.textMuted);
+          }),
+          labelTextStyle: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: LightColors.primary,
+              );
+            }
+            return const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w400,
+              color: LightColors.textMuted,
+            );
+          }),
+        ),
+        navigationRailTheme: NavigationRailThemeData(
+          indicatorColor: LightColors.primary.withValues(alpha: 0.15),
+          selectedIconTheme: const IconThemeData(color: LightColors.primary),
+          unselectedIconTheme: const IconThemeData(color: LightColors.textMuted),
+          selectedLabelTextStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: LightColors.primary,
+          ),
+          unselectedLabelTextStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: LightColors.textMuted,
+          ),
+        ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: LightColors.primary,
@@ -418,6 +494,44 @@ class AppTheme {
           unselectedLabelStyle: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w400,
+          ),
+        ),
+        navigationBarTheme: NavigationBarThemeData(
+          indicatorColor: AmoledColors.primary.withValues(alpha: 0.2),
+          iconTheme: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const IconThemeData(color: AmoledColors.primary);
+            }
+            return const IconThemeData(color: AmoledColors.textMuted);
+          }),
+          labelTextStyle: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AmoledColors.primary,
+              );
+            }
+            return const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w400,
+              color: AmoledColors.textMuted,
+            );
+          }),
+        ),
+        navigationRailTheme: NavigationRailThemeData(
+          indicatorColor: AmoledColors.primary.withValues(alpha: 0.2),
+          selectedIconTheme: const IconThemeData(color: AmoledColors.primary),
+          unselectedIconTheme: const IconThemeData(color: AmoledColors.textMuted),
+          selectedLabelTextStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AmoledColors.primary,
+          ),
+          unselectedLabelTextStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AmoledColors.textMuted,
           ),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
