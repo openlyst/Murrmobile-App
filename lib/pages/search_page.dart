@@ -101,8 +101,8 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   int _crossAxisCount(double width) {
-    if (width >= 1600) return 6;
-    if (width >= 1200) return 5;
+    if (width >= 1600) return 5;
+    if (width >= 1200) return 4;
     if (width >= 900) return 4;
     if (width >= 600) return 3;
     return 2;
@@ -483,7 +483,7 @@ class _SearchPageState extends State<SearchPage> {
                 sliver: SliverGrid(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: cols,
-                    childAspectRatio: 10 / 16,
+                    childAspectRatio: 10 / 14,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),
