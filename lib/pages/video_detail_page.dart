@@ -120,18 +120,21 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
       ids.add(commentId.substring(8));
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      for (final id in ids) {
-        final key = _commentKeys[id];
-        if (key != null && key.currentContext != null) {
-          Scrollable.ensureVisible(
-            key.currentContext!,
-            duration: const Duration(milliseconds: 400),
-            curve: Curves.easeInOut,
-            alignment: 0.3,
-          );
-          return;
+      // Give images/layout a moment to settle, then scroll
+      Future.delayed(const Duration(milliseconds: 400), () {
+        for (final id in ids) {
+          final key = _commentKeys[id];
+          if (key != null && key.currentContext != null) {
+            Scrollable.ensureVisible(
+              key.currentContext!,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+              alignment: 0.0,
+            );
+            return;
+          }
         }
-      }
+      });
     });
   }
 
@@ -1450,6 +1453,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                 onPauseVideo: _pauseVideoIfNeeded,
                                 onResumeVideo: _resumeVideoIfNeeded,
                                 highlighted: _isCommentHighlighted(c.id),
+                                replyKeys: _commentKeys,
                               ))
                           .toList(),
                     ),
@@ -1831,6 +1835,7 @@ class _CommentTile extends StatefulWidget {
   final VoidCallback? onPauseVideo;
   final VoidCallback? onResumeVideo;
   final bool highlighted;
+  final Map<String, GlobalKey>? replyKeys;
 
   const _CommentTile({
     super.key,
@@ -1841,6 +1846,7 @@ class _CommentTile extends StatefulWidget {
     this.onPauseVideo,
     this.onResumeVideo,
     this.highlighted = false,
+    this.replyKeys,
   });
 
   @override
@@ -2147,12 +2153,15 @@ class _CommentTileState extends State<_CommentTile> {
                         child: Column(
                           children: comment.replies
                               .map((r) => _CommentTile(
+                                    key: widget.replyKeys?[r.id],
                                     comment: r,
                                     viewerCanComment: widget.viewerCanComment,
                                     onDelete: widget.onDelete,
                                     onReply: widget.onReply,
                                     onPauseVideo: widget.onPauseVideo,
                                     onResumeVideo: widget.onResumeVideo,
+                                    highlighted: widget.highlighted,
+                                    replyKeys: widget.replyKeys,
                                   ))
                               .toList(),
                         ),
