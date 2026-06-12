@@ -483,10 +483,10 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                 CachedNetworkImage(
                   imageUrl: medium.thumbnailUrl,
                   fit: BoxFit.contain,
-                  placeholder: (_, __) => Container(
+                  placeholder: (_, _) => Container(
                     color: Colors.black,
                   ),
-                  errorWidget: (_, __, ___) => Container(
+                  errorWidget: (_, _, _) => Container(
                     color: Colors.black,
                     child: const Icon(
                       Icons.broken_image_outlined,
@@ -777,7 +777,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         body: SafeArea(
           child: CustomScrollView(
             controller: _scrollController,
