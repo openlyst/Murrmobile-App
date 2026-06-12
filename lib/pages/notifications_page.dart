@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../models/notification.dart';
 import '../services/murrtube_api.dart';
 
@@ -168,23 +169,32 @@ class _NotificationCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: item.read
-                        ? colorScheme.surfaceContainerHighest
-                        : colorScheme.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    item.read
-                        ? Icons.notifications_none_outlined
-                        : Icons.notifications_rounded,
-                    color: item.read ? mutedColor : colorScheme.primary,
-                    size: 20,
-                  ),
-                ),
+                item.actor?.avatarUrl != null
+                    ? ClipOval(
+                        child: CachedNetworkImage(
+                          imageUrl: item.actor!.avatarUrl!,
+                          width: 40,
+                          height: 40,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: item.read
+                              ? colorScheme.surfaceContainerHighest
+                              : colorScheme.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          item.read
+                              ? Icons.notifications_none_outlined
+                              : Icons.notifications_rounded,
+                          color: item.read ? mutedColor : colorScheme.primary,
+                          size: 20,
+                        ),
+                      ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
