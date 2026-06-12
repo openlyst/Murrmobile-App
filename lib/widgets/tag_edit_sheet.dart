@@ -59,8 +59,11 @@ class _TagEditSheetState extends State<TagEditSheet> {
       try {
         final result = await MurrtubeApi.searchSuggest(query);
         if (!mounted) return;
+        final currentNames = _tags.map((t) => t.name.toLowerCase()).toSet();
         setState(() {
-          _suggestions = result.tags;
+          _suggestions = result.tags
+              .where((s) => !currentNames.contains(s.name.toLowerCase()))
+              .toList();
           _suggesting = false;
         });
       } catch (e) {
@@ -71,6 +74,7 @@ class _TagEditSheetState extends State<TagEditSheet> {
   }
 
   void _addTag(String name) {
+    _debounce?.cancel();
     final normalized = name.trim().toLowerCase();
     if (normalized.isEmpty) return;
     if (_tags.any((t) => t.name.toLowerCase() == normalized)) return;
