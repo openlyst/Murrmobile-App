@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../models/notification.dart';
 import '../services/murrtube_api.dart';
+import 'video_detail_page.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
@@ -120,9 +122,23 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                 return _NotificationCard(
                                   item: item,
                                   onTap: () {
-                                    if (item.url != null) {
-                                      // Navigate to URL
-                                    }
+                                    if (item.url == null) return;
+                                    // Extract short code from /v/ICYP or /v/ICYP#comment-...
+                                    final match = RegExp(r'/v/([^/#]+)').firstMatch(item.url!);
+                                    if (match == null) return;
+                                    final shortCode = match.group(1)!;
+                                    // Extract comment ID from fragment #comment-uuid
+                                    final fragmentMatch = RegExp(r'#(.+)').firstMatch(item.url!);
+                                    final commentId = fragmentMatch?.group(1);
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => VideoDetailPage(
+                                          shortCode: shortCode,
+                                          commentId: commentId,
+                                        ),
+                                      ),
+                                    );
                                   },
                                 );
                               },
@@ -168,23 +184,32 @@ class _NotificationCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: item.read
-                        ? colorScheme.surfaceContainerHighest
-                        : colorScheme.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    item.read
-                        ? Icons.notifications_none_outlined
-                        : Icons.notifications_rounded,
-                    color: item.read ? mutedColor : colorScheme.primary,
-                    size: 20,
-                  ),
-                ),
+                item.actor?.avatarUrl != null
+                    ? ClipOval(
+                        child: CachedNetworkImage(
+                          imageUrl: item.actor!.avatarUrl!,
+                          width: 40,
+                          height: 40,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: item.read
+                              ? colorScheme.surfaceContainerHighest
+                              : colorScheme.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          item.read
+                              ? Icons.notifications_none_outlined
+                              : Icons.notifications_rounded,
+                          color: item.read ? mutedColor : colorScheme.primary,
+                          size: 20,
+                        ),
+                      ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
