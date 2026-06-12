@@ -16,8 +16,9 @@ import 'search_page.dart';
 
 class VideoDetailPage extends StatefulWidget {
   final String shortCode;
+  final String? commentId;
 
-  const VideoDetailPage({super.key, required this.shortCode});
+  const VideoDetailPage({super.key, required this.shortCode, this.commentId});
 
   @override
   State<VideoDetailPage> createState() => _VideoDetailPageState();
@@ -44,10 +45,13 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   Timer? _fullscreenUITimer;
   final _commentController = TextEditingController();
   bool _postingComment = false;
+  final _scrollController = ScrollController();
+  final Map<String, GlobalKey> _commentKeys = {};
 
   @override
   void initState() {
     super.initState();
+    _showComments = widget.commentId != null;
     _loadMutePref();
     _load();
   }
@@ -63,6 +67,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     _fullscreenUITimer?.cancel();
     _controller?.dispose();
     _commentController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -78,14 +83,56 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
         _viewerLiked = result.medium.viewerLiked;
         _likesCount = result.medium.likesCount;
         _loading = false;
+        // Build keys for all comments (including replies)
+        _commentKeys.clear();
+        void addKeys(List<Comment> list) {
+          for (final c in list) {
+            _commentKeys[c.id] = GlobalKey();
+            addKeys(c.replies);
+          }
+        }
+        addKeys(_comments);
       });
       if (_medium?.hlsUrl != null) {
         _initPlayer(_medium!.hlsUrl!);
+      }
+      if (widget.commentId != null) {
+        _scrollToComment(widget.commentId!);
       }
     } catch (e) {
       debugPrint('VideoDetailPage load error: $e');
       setState(() => _loading = false);
     }
+  }
+
+  bool _isCommentHighlighted(String commentId) {
+    final target = widget.commentId;
+    if (target == null) return false;
+    if (commentId == target) return true;
+    if (target.startsWith('comment-') && commentId == target.substring(8)) return true;
+    return false;
+  }
+
+  void _scrollToComment(String commentId) {
+    // The fragment may be "comment-uuid" while the model id is "uuid"
+    final ids = <String>{commentId};
+    if (commentId.startsWith('comment-')) {
+      ids.add(commentId.substring(8));
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      for (final id in ids) {
+        final key = _commentKeys[id];
+        if (key != null && key.currentContext != null) {
+          Scrollable.ensureVisible(
+            key.currentContext!,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeInOut,
+            alignment: 0.3,
+          );
+          return;
+        }
+      }
+    });
   }
 
   Future<void> _showSaveBottomSheet() async {
@@ -725,7 +772,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
         backgroundColor: Theme.of(context).colorScheme.background,
         body: SafeArea(
           child: CustomScrollView(
-          slivers: [
+            controller: _scrollController,
+            slivers: [
             SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1394,12 +1442,14 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                     child: Column(
                       children: _comments
                           .map((c) => _CommentTile(
+                                key: _commentKeys[c.id],
                                 comment: c,
                                 viewerCanComment: _viewerCanComment,
                                 onDelete: _viewerCanComment ? _deleteComment : null,
                                 onReply: _viewerCanComment ? _replyToComment : null,
                                 onPauseVideo: _pauseVideoIfNeeded,
                                 onResumeVideo: _resumeVideoIfNeeded,
+                                highlighted: _isCommentHighlighted(c.id),
                               ))
                           .toList(),
                     ),
@@ -1780,14 +1830,17 @@ class _CommentTile extends StatefulWidget {
   final Future<void> Function(String commentId, String body)? onReply;
   final VoidCallback? onPauseVideo;
   final VoidCallback? onResumeVideo;
+  final bool highlighted;
 
   const _CommentTile({
+    super.key,
     required this.comment,
     this.viewerCanComment = false,
     this.onDelete,
     this.onReply,
     this.onPauseVideo,
     this.onResumeVideo,
+    this.highlighted = false,
   });
 
   @override
@@ -1839,7 +1892,10 @@ class _CommentTileState extends State<_CommentTile> {
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: theme.dividerColor.withValues(alpha: 0.3),
+          color: widget.highlighted
+              ? colorScheme.primary
+              : theme.dividerColor.withValues(alpha: 0.3),
+          width: widget.highlighted ? 2 : 1,
         ),
       ),
       child: Column(

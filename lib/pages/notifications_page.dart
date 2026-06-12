@@ -127,10 +127,16 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                     final match = RegExp(r'/v/([^/#]+)').firstMatch(item.url!);
                                     if (match == null) return;
                                     final shortCode = match.group(1)!;
+                                    // Extract comment ID from fragment #comment-uuid
+                                    final fragmentMatch = RegExp(r'#(.+)').firstMatch(item.url!);
+                                    final commentId = fragmentMatch?.group(1);
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => VideoDetailPage(shortCode: shortCode),
+                                        builder: (_) => VideoDetailPage(
+                                          shortCode: shortCode,
+                                          commentId: commentId,
+                                        ),
                                       ),
                                     );
                                   },
