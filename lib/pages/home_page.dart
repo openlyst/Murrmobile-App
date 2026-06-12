@@ -91,6 +91,12 @@ class _HomePageState extends State<HomePage> {
     return 2;
   }
 
+  double _cardAspectRatio(double width) {
+    if (width < 600) return 10 / 13;
+    if (width < 900) return 10 / 12;
+    return 10 / 11;
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -182,7 +188,7 @@ class _HomePageState extends State<HomePage> {
                 sliver: SliverGrid(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: cols,
-                    childAspectRatio: 10 / 11,
+                    childAspectRatio: _cardAspectRatio(size.width),
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),

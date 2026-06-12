@@ -359,6 +359,12 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     return 2;
   }
 
+  double _cardAspectRatio(double width) {
+    if (width < 600) return 10 / 13;
+    if (width < 900) return 10 / 12;
+    return 10 / 11;
+  }
+
   Future<void> _deleteComment(String commentId) async {
     try {
       await MurrtubeApi.deleteComment(commentId);
@@ -1488,7 +1494,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                           physics: const NeverScrollableScrollPhysics(),
                           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: cols,
-                            childAspectRatio: 10 / 11,
+                            childAspectRatio: _cardAspectRatio(constraints.maxWidth),
                             crossAxisSpacing: 12,
                             mainAxisSpacing: 12,
                           ),

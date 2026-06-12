@@ -108,6 +108,12 @@ class _SearchPageState extends State<SearchPage> {
     return 2;
   }
 
+  double _cardAspectRatio(double width) {
+    if (width < 600) return 10 / 13;
+    if (width < 900) return 10 / 12;
+    return 10 / 11;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -483,7 +489,7 @@ class _SearchPageState extends State<SearchPage> {
                 sliver: SliverGrid(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: cols,
-                    childAspectRatio: 10 / 11,
+                    childAspectRatio: _cardAspectRatio(size.width),
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),

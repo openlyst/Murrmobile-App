@@ -196,6 +196,12 @@ class _ProfilePageState extends State<ProfilePage>
     return 2;
   }
 
+  double _cardAspectRatio(double width) {
+    if (width < 600) return 10 / 13;
+    if (width < 900) return 10 / 12;
+    return 10 / 11;
+  }
+
   String _formatCount(int? n) {
     if (n == null) return '0';
     if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
@@ -600,7 +606,7 @@ class _ProfilePageState extends State<ProfilePage>
             padding: const EdgeInsets.all(16),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: cols,
-              childAspectRatio: 10 / 11,
+              childAspectRatio: _cardAspectRatio(constraints.maxWidth),
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
             ),

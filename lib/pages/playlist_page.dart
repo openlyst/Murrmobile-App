@@ -85,6 +85,12 @@ class _PlaylistPageState extends State<PlaylistPage> {
     return 2;
   }
 
+  double _cardAspectRatio(double width) {
+    if (width < 600) return 10 / 13;
+    if (width < 900) return 10 / 12;
+    return 10 / 11;
+  }
+
   String _formatCount(int? n) {
     if (n == null) return '0';
     if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
@@ -292,7 +298,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
                   return SliverGrid(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: cols,
-                      childAspectRatio: 10 / 11,
+                      childAspectRatio: _cardAspectRatio(constraints.crossAxisExtent),
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                     ),
