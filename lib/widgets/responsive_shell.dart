@@ -135,7 +135,10 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     return Scaffold(
       body: SafeArea(
-        child: _items[_selectedIndex].page,
+        child: IndexedStack(
+          index: _selectedIndex,
+          children: _items.map((item) => item.page).toList(),
+        ),
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -443,7 +446,10 @@ class _DesktopLayout extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: items[selectedIndex].page,
+            child: IndexedStack(
+              index: selectedIndex,
+              children: items.map((item) => item.page).toList(),
+            ),
           ),
         ],
       ),
