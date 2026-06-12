@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/murrtube_api.dart';
 import '../utils/cookie_loader.dart';
 import '../utils/app_preferences.dart';
+import '../utils/page_transitions.dart';
 import '../providers/theme_provider.dart';
 import '../providers/navigation_provider.dart';
 import 'login_page.dart';
@@ -135,12 +136,10 @@ class _SettingsPageState extends State<SettingsPage> {
                         GestureDetector(
                           onTap: () {
                             if (user['slug'] != null) {
-                              Navigator.push(
+                              pushPage(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (_) => ProfilePage(
-                                    slug: user['slug'] as String,
-                                  ),
+                                builder: (_) => ProfilePage(
+                                  slug: user['slug'] as String,
                                 ),
                               );
                             }
@@ -226,10 +225,9 @@ class _SettingsPageState extends State<SettingsPage> {
                       subtitle: 'For uploads, comments, and notifications',
                       iconColor: Theme.of(context).colorScheme.primary,
                       onTap: () async {
-                        final result = await Navigator.push<bool>(
+                        final result = await pushPage<bool>(
                           context,
-                          MaterialPageRoute(
-                              builder: (_) => const LoginPage()),
+                          builder: (_) => const LoginPage(),
                         );
                         if (result == true && mounted) {
                           _load();

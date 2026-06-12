@@ -9,6 +9,7 @@ import '../models/comment.dart';
 import '../models/playlist.dart';
 import '../services/murrtube_api.dart';
 import '../utils/app_preferences.dart';
+import '../utils/page_transitions.dart';
 import '../widgets/video_card.dart';
 import '../widgets/linkify_text.dart';
 import 'profile_page.dart';
@@ -1155,12 +1156,10 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                       GestureDetector(
                         onTap: () {
                           _pauseVideoIfNeeded();
-                          Navigator.push(
+                          pushPage(
                             context,
-                            MaterialPageRoute(
-                              builder: (_) => ProfilePage(
-                                slug: medium.user.slug,
-                              ),
+                            builder: (_) => ProfilePage(
+                              slug: medium.user.slug,
                             ),
                           ).then((_) {
                             if (mounted) _resumeVideoIfNeeded();
@@ -1309,11 +1308,9 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                               .map((tag) => GestureDetector(
                                     onTap: () {
                                       _pauseVideoIfNeeded();
-                                      Navigator.push(
+                                      pushPage(
                                         context,
-                                        MaterialPageRoute(
-                                          builder: (_) => SearchPage(initialQuery: tag.name),
-                                        ),
+                                        builder: (_) => SearchPage(initialQuery: tag.name),
                                       ).then((_) {
                                         if (mounted) _resumeVideoIfNeeded();
                                       });
@@ -1497,13 +1494,13 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                             final m = _watchMore[index];
                             return VideoCard(
                               media: m,
+                              heroTag: 'video-thumb-${m.shortCode}',
                               onTap: () {
-                                Navigator.pushReplacement(
+                                pushReplacementPage(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (_) => VideoDetailPage(
-                                      shortCode: m.shortCode,
-                                    ),
+                                  builder: (_) => VideoDetailPage(
+                                    shortCode: m.shortCode,
+                                    heroTag: 'video-thumb-${m.shortCode}',
                                   ),
                                 );
                               },
@@ -1917,11 +1914,9 @@ class _CommentTileState extends State<_CommentTile> {
               GestureDetector(
                 onTap: () {
                   widget.onPauseVideo?.call();
-                  Navigator.push(
+                  pushPage(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => ProfilePage(slug: comment.user.slug),
-                    ),
+                    builder: (_) => ProfilePage(slug: comment.user.slug),
                   ).then((_) {
                     if (mounted) widget.onResumeVideo?.call();
                   });
@@ -1967,11 +1962,9 @@ class _CommentTileState extends State<_CommentTile> {
                         GestureDetector(
                           onTap: () {
                             widget.onPauseVideo?.call();
-                            Navigator.push(
+                            pushPage(
                               context,
-                              MaterialPageRoute(
-                                builder: (_) => ProfilePage(slug: comment.user.slug),
-                              ),
+                              builder: (_) => ProfilePage(slug: comment.user.slug),
                             ).then((_) {
                               if (mounted) widget.onResumeVideo?.call();
                             });

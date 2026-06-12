@@ -4,6 +4,7 @@ import '../models/media.dart';
 import '../models/playlist.dart';
 import '../models/user.dart';
 import '../services/murrtube_api.dart';
+import '../utils/page_transitions.dart';
 import '../widgets/video_card.dart';
 import 'video_detail_page.dart';
 import 'playlist_page.dart';
@@ -617,15 +618,16 @@ class _ProfilePageState extends State<ProfilePage>
                   ),
                 );
               }
+              final media = _media[index];
               return VideoCard(
-                media: _media[index],
+                media: media,
+                heroTag: 'video-thumb-${media.shortCode}',
                 onTap: () {
-                  Navigator.push(
+                  pushPage(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => VideoDetailPage(
-                        shortCode: _media[index].shortCode,
-                      ),
+                    builder: (_) => VideoDetailPage(
+                      shortCode: media.shortCode,
+                      heroTag: 'video-thumb-${media.shortCode}',
                     ),
                   );
                 },
@@ -666,13 +668,11 @@ class _ProfilePageState extends State<ProfilePage>
         return GestureDetector(
           onTap: () {
             if (_user == null) return;
-            Navigator.push(
+            pushPage(
               context,
-              MaterialPageRoute(
-                builder: (_) => PlaylistPage(
-                  userSlug: _user!.slug,
-                  playlistSlug: p.slug,
-                ),
+              builder: (_) => PlaylistPage(
+                userSlug: _user!.slug,
+                playlistSlug: p.slug,
               ),
             );
           },

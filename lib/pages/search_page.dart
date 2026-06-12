@@ -5,6 +5,7 @@ import '../models/media.dart';
 import '../models/user.dart';
 import '../models/tag.dart';
 import '../services/murrtube_api.dart';
+import '../utils/page_transitions.dart';
 import '../widgets/video_card.dart';
 import 'video_detail_page.dart';
 import 'profile_page.dart';
@@ -349,11 +350,9 @@ class _SearchPageState extends State<SearchPage> {
                             children: _suggestedUsers
                                 .map((user) => GestureDetector(
                                       onTap: () {
-                                        Navigator.push(
+                                        pushPage(
                                           context,
-                                          MaterialPageRoute(
-                                            builder: (_) => ProfilePage(slug: user.slug),
-                                          ),
+                                          builder: (_) => ProfilePage(slug: user.slug),
                                         );
                                       },
                                       child: Container(
@@ -505,15 +504,16 @@ class _SearchPageState extends State<SearchPage> {
                           ),
                         );
                       }
+                      final media = _media[index];
                       return VideoCard(
-                        media: _media[index],
+                        media: media,
+                        heroTag: 'video-thumb-${media.shortCode}',
                         onTap: () {
-                          Navigator.push(
+                          pushPage(
                             context,
-                            MaterialPageRoute(
-                              builder: (_) => VideoDetailPage(
-                                shortCode: _media[index].shortCode,
-                              ),
+                            builder: (_) => VideoDetailPage(
+                              shortCode: media.shortCode,
+                              heroTag: 'video-thumb-${media.shortCode}',
                             ),
                           );
                         },
@@ -631,11 +631,9 @@ class _UserTile extends StatelessWidget {
     final mutedColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
     return GestureDetector(
       onTap: () {
-        Navigator.push(
+        pushPage(
           context,
-          MaterialPageRoute(
-            builder: (_) => ProfilePage(slug: user.slug),
-          ),
+          builder: (_) => ProfilePage(slug: user.slug),
         );
       },
       child: Container(

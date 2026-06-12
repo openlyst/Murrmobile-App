@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/murrtube_api.dart';
+import '../utils/page_transitions.dart';
 import '../pages/home_page.dart';
 import '../pages/search_page.dart';
 import '../pages/upload_page.dart';
@@ -405,11 +406,9 @@ class _DesktopLayout extends StatelessWidget {
                         onTap: () {
                           final slug = MurrtubeApi.currentUserSlug;
                           if (slug != null) {
-                            Navigator.push(
+                            pushPage(
                               context,
-                              MaterialPageRoute(
-                                builder: (_) => ProfilePage(slug: slug),
-                              ),
+                              builder: (_) => ProfilePage(slug: slug),
                             );
                           }
                         },

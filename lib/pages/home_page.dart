@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/media.dart';
 import '../models/announcement.dart';
 import '../services/murrtube_api.dart';
+import '../utils/page_transitions.dart';
 import '../widgets/video_card.dart';
 import '../widgets/announcement_banner.dart';
 import 'video_detail_page.dart';
@@ -200,15 +201,16 @@ class _HomePageState extends State<HomePage> {
                         }
                         return const SizedBox.shrink();
                       }
+                      final media = _media[index];
                       return VideoCard(
-                        media: _media[index],
+                        media: media,
+                        heroTag: 'video-thumb-${media.shortCode}',
                         onTap: () {
-                          Navigator.push(
+                          pushPage(
                             context,
-                            MaterialPageRoute(
-                              builder: (_) => VideoDetailPage(
-                                shortCode: _media[index].shortCode,
-                              ),
+                            builder: (_) => VideoDetailPage(
+                              shortCode: media.shortCode,
+                              heroTag: 'video-thumb-${media.shortCode}',
                             ),
                           );
                         },
