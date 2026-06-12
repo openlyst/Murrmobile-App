@@ -193,6 +193,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
 
   Future<void> _showTagEditSheet() async {
     if (_medium == null) return;
+    if (!MurrtubeApi.isAuthenticated) return;
     if (!mounted) return;
     showModalBottomSheet(
       context: context,
