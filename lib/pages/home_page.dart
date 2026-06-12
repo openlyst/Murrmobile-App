@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/media.dart';
 import '../models/announcement.dart';
 import '../services/murrtube_api.dart';
+import '../utils/page_transitions.dart';
 import '../widgets/video_card.dart';
 import '../widgets/announcement_banner.dart';
 import 'video_detail_page.dart';
@@ -83,11 +84,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   int _crossAxisCount(double width) {
-    if (width >= 1600) return 6;
-    if (width >= 1200) return 5;
+    if (width >= 1600) return 5;
+    if (width >= 1200) return 4;
     if (width >= 900) return 4;
     if (width >= 600) return 3;
     return 2;
+  }
+
+  double _cardAspectRatio(double width) {
+    if (width < 600) return 10 / 13;
+    if (width < 900) return 10 / 12;
+    return 10 / 11;
   }
 
   @override
@@ -106,34 +113,37 @@ class _HomePageState extends State<HomePage> {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                child: Row(
-                  children: [
-                    _PillTab(
-                      label: 'Trending',
-                      active: _currentTab == 'trending',
-                      onTap: () => _switchTab('trending'),
-                    ),
-                    const SizedBox(width: 10),
-                    _PillTab(
-                      label: 'For You',
-                      active: _currentTab == 'for_you',
-                      onTap: () => _switchTab('for_you'),
-                    ),
-                    const SizedBox(width: 10),
-                    _PillTab(
-                      label: 'Latest',
-                      active: _currentTab == 'latest',
-                      onTap: () => _switchTab('latest'),
-                    ),
-                    if (MurrtubeApi.isAuthenticated) ...[
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _PillTab(
+                        label: 'Trending',
+                        active: _currentTab == 'trending',
+                        onTap: () => _switchTab('trending'),
+                      ),
                       const SizedBox(width: 10),
                       _PillTab(
-                        label: 'Subscriptions',
-                        active: _currentTab == 'subscriptions',
-                        onTap: () => _switchTab('subscriptions'),
+                        label: 'For You',
+                        active: _currentTab == 'for_you',
+                        onTap: () => _switchTab('for_you'),
                       ),
+                      const SizedBox(width: 10),
+                      _PillTab(
+                        label: 'Latest',
+                        active: _currentTab == 'latest',
+                        onTap: () => _switchTab('latest'),
+                      ),
+                      if (MurrtubeApi.isAuthenticated) ...[
+                        const SizedBox(width: 10),
+                        _PillTab(
+                          label: 'Subscriptions',
+                          active: _currentTab == 'subscriptions',
+                          onTap: () => _switchTab('subscriptions'),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -178,7 +188,7 @@ class _HomePageState extends State<HomePage> {
                 sliver: SliverGrid(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: cols,
-                    childAspectRatio: 10 / 16,
+                    childAspectRatio: _cardAspectRatio(size.width),
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),
@@ -200,15 +210,16 @@ class _HomePageState extends State<HomePage> {
                         }
                         return const SizedBox.shrink();
                       }
+                      final media = _media[index];
                       return VideoCard(
-                        media: _media[index],
+                        media: media,
+                        heroTag: 'video-thumb-${media.shortCode}',
                         onTap: () {
-                          Navigator.push(
+                          pushPage(
                             context,
-                            MaterialPageRoute(
-                              builder: (_) => VideoDetailPage(
-                                shortCode: _media[index].shortCode,
-                              ),
+                            builder: (_) => VideoDetailPage(
+                              shortCode: media.shortCode,
+                              heroTag: 'video-thumb-${media.shortCode}',
                             ),
                           );
                         },

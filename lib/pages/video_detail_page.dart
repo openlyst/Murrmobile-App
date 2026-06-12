@@ -9,6 +9,7 @@ import '../models/comment.dart';
 import '../models/playlist.dart';
 import '../services/murrtube_api.dart';
 import '../utils/app_preferences.dart';
+import '../utils/page_transitions.dart';
 import '../widgets/video_card.dart';
 import '../widgets/linkify_text.dart';
 import 'profile_page.dart';
@@ -17,8 +18,9 @@ import 'search_page.dart';
 class VideoDetailPage extends StatefulWidget {
   final String shortCode;
   final String? commentId;
+  final String? heroTag;
 
-  const VideoDetailPage({super.key, required this.shortCode, this.commentId});
+  const VideoDetailPage({super.key, required this.shortCode, this.commentId, this.heroTag});
 
   @override
   State<VideoDetailPage> createState() => _VideoDetailPageState();
@@ -190,6 +192,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
 
   Future<void> _toggleLike() async {
     if (_medium == null || !_viewerCanLike) return;
+    HapticFeedback.lightImpact();
     final medium = _medium!;
     final wasLiked = _viewerLiked;
     setState(() {
@@ -312,14 +315,6 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     }
   }
 
-  Future<bool> _onWillPop() async {
-    if (_isFullscreen) {
-      _toggleFullscreen();
-      return false;
-    }
-    return true;
-  }
-
   void _onDoubleTap(bool forward) {
     if (_controller == null || !_controller!.value.isInitialized) return;
     final pos = _controller!.value.position;
@@ -357,11 +352,17 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   }
 
   int _crossAxisCount(double width) {
-    if (width >= 1600) return 6;
-    if (width >= 1200) return 5;
+    if (width >= 1600) return 5;
+    if (width >= 1200) return 4;
     if (width >= 900) return 4;
     if (width >= 600) return 3;
     return 2;
+  }
+
+  double _cardAspectRatio(double width) {
+    if (width < 600) return 10 / 13;
+    if (width < 900) return 10 / 12;
+    return 10 / 11;
   }
 
   Future<void> _deleteComment(String commentId) async {
@@ -465,8 +466,13 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     if (_isFullscreen) {
       return Scaffold(
         backgroundColor: Colors.black,
-        body: WillPopScope(
-          onWillPop: _onWillPop,
+        body: PopScope(
+          canPop: !_isFullscreen,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop && _isFullscreen) {
+              _toggleFullscreen();
+            }
+          },
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -483,10 +489,10 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                 CachedNetworkImage(
                   imageUrl: medium.thumbnailUrl,
                   fit: BoxFit.contain,
-                  placeholder: (_, __) => Container(
+                  placeholder: (_, _) => Container(
                     color: Colors.black,
                   ),
-                  errorWidget: (_, __, ___) => Container(
+                  errorWidget: (_, _, _) => Container(
                     color: Colors.black,
                     child: const Icon(
                       Icons.broken_image_outlined,
@@ -533,7 +539,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                       // Mute button
                       Positioned(
                         top: 12,
-                        right: 60,
+                        right: 64,
                         child: GestureDetector(
                           onTap: _toggleMute,
                           child: Container(
@@ -769,10 +775,15 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
       );
     }
 
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    return PopScope(
+      canPop: !_isFullscreen,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _isFullscreen) {
+          _toggleFullscreen();
+        }
+      },
       child: Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         body: SafeArea(
           child: CustomScrollView(
             controller: _scrollController,
@@ -802,17 +813,20 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                                 ),
                               )
                             else
-                              CachedNetworkImage(
-                                imageUrl: medium.thumbnailUrl,
-                                fit: BoxFit.contain,
-                                placeholder: (_, __) => Container(
-                                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                                ),
-                                errorWidget: (_, __, ___) => Container(
-                                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                                  child: Icon(
-                                    Icons.broken_image_outlined,
-                                    color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
+                              Hero(
+                                tag: widget.heroTag ?? 'video-thumb-${widget.shortCode}',
+                                child: CachedNetworkImage(
+                                  imageUrl: medium.thumbnailUrl,
+                                  fit: BoxFit.contain,
+                                  placeholder: (_, __) => Container(
+                                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                  ),
+                                  errorWidget: (_, __, ___) => Container(
+                                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                    child: Icon(
+                                      Icons.broken_image_outlined,
+                                      color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -1089,7 +1103,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                     // Mute button
                     Positioned(
                       top: 12,
-                      right: 52,
+                      right: 56,
                       child: GestureDetector(
                         onTap: _toggleMute,
                         child: Container(
@@ -1151,12 +1165,10 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                       GestureDetector(
                         onTap: () {
                           _pauseVideoIfNeeded();
-                          Navigator.push(
+                          pushPage(
                             context,
-                            MaterialPageRoute(
-                              builder: (_) => ProfilePage(
-                                slug: medium.user.slug,
-                              ),
+                            builder: (_) => ProfilePage(
+                              slug: medium.user.slug,
                             ),
                           ).then((_) {
                             if (mounted) _resumeVideoIfNeeded();
@@ -1305,11 +1317,9 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                               .map((tag) => GestureDetector(
                                     onTap: () {
                                       _pauseVideoIfNeeded();
-                                      Navigator.push(
+                                      pushPage(
                                         context,
-                                        MaterialPageRoute(
-                                          builder: (_) => SearchPage(initialQuery: tag.name),
-                                        ),
+                                        builder: (_) => SearchPage(initialQuery: tag.name),
                                       ).then((_) {
                                         if (mounted) _resumeVideoIfNeeded();
                                       });
@@ -1484,7 +1494,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                           physics: const NeverScrollableScrollPhysics(),
                           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: cols,
-                            childAspectRatio: 10 / 16,
+                            childAspectRatio: _cardAspectRatio(constraints.maxWidth),
                             crossAxisSpacing: 12,
                             mainAxisSpacing: 12,
                           ),
@@ -1493,13 +1503,13 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                             final m = _watchMore[index];
                             return VideoCard(
                               media: m,
+                              heroTag: 'video-thumb-${m.shortCode}',
                               onTap: () {
-                                Navigator.pushReplacement(
+                                pushReplacementPage(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (_) => VideoDetailPage(
-                                      shortCode: m.shortCode,
-                                    ),
+                                  builder: (_) => VideoDetailPage(
+                                    shortCode: m.shortCode,
+                                    heroTag: 'video-thumb-${m.shortCode}',
                                   ),
                                 );
                               },
@@ -1913,11 +1923,9 @@ class _CommentTileState extends State<_CommentTile> {
               GestureDetector(
                 onTap: () {
                   widget.onPauseVideo?.call();
-                  Navigator.push(
+                  pushPage(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => ProfilePage(slug: comment.user.slug),
-                    ),
+                    builder: (_) => ProfilePage(slug: comment.user.slug),
                   ).then((_) {
                     if (mounted) widget.onResumeVideo?.call();
                   });
@@ -1963,11 +1971,9 @@ class _CommentTileState extends State<_CommentTile> {
                         GestureDetector(
                           onTap: () {
                             widget.onPauseVideo?.call();
-                            Navigator.push(
+                            pushPage(
                               context,
-                              MaterialPageRoute(
-                                builder: (_) => ProfilePage(slug: comment.user.slug),
-                              ),
+                              builder: (_) => ProfilePage(slug: comment.user.slug),
                             ).then((_) {
                               if (mounted) widget.onResumeVideo?.call();
                             });
