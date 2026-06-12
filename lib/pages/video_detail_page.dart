@@ -12,6 +12,7 @@ import '../utils/app_preferences.dart';
 import '../utils/page_transitions.dart';
 import '../widgets/video_card.dart';
 import '../widgets/linkify_text.dart';
+import '../widgets/tag_edit_sheet.dart';
 import 'profile_page.dart';
 import 'search_page.dart';
 
@@ -185,6 +186,52 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
               SnackBar(content: Text('Saved to ${playlist.name}')),
             );
           }
+        },
+      ),
+    );
+  }
+
+  Future<void> _showTagEditSheet() async {
+    if (_medium == null) return;
+    if (!mounted) return;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => TagEditSheet(
+        shortCode: widget.shortCode,
+        initialTags: _medium!.tags,
+        onSaved: (tags) {
+          setState(() {
+            _medium = Media(
+              id: _medium!.id,
+              shortCode: _medium!.shortCode,
+              title: _medium!.title,
+              url: _medium!.url,
+              duration: _medium!.duration,
+              durationLabel: _medium!.durationLabel,
+              thumbnailUrl: _medium!.thumbnailUrl,
+              previewUrl: _medium!.previewUrl,
+              status: _medium!.status,
+              likesCount: _medium!.likesCount,
+              viewsCount: _medium!.viewsCount,
+              publishedAt: _medium!.publishedAt,
+              createdAt: _medium!.createdAt,
+              user: _medium!.user,
+              description: _medium!.description,
+              visibility: _medium!.visibility,
+              commentsDisabled: _medium!.commentsDisabled,
+              commentsCount: _medium!.commentsCount,
+              tags: tags,
+              viewerLiked: _medium!.viewerLiked,
+              isOwner: _medium!.isOwner,
+              isLive: _medium!.isLive,
+              hlsUrl: _medium!.hlsUrl,
+            );
+          });
         },
       ),
     );
@@ -1308,46 +1355,59 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                           ),
                         ),
                       ],
-                      if (medium.tags.isNotEmpty) ...[
+                      if (medium.tags.isNotEmpty || MurrtubeApi.isAuthenticated) ...[
                         const SizedBox(height: 14),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: medium.tags
-                              .map((tag) => GestureDetector(
-                                    onTap: () {
-                                      _pauseVideoIfNeeded();
-                                      pushPage(
-                                        context,
-                                        builder: (_) => SearchPage(initialQuery: tag.name),
-                                      ).then((_) {
-                                        if (mounted) _resumeVideoIfNeeded();
-                                      });
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).colorScheme.surface,
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(
-                                          color: Theme.of(context).dividerColor
-                                              .withValues(alpha: 0.3),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        '#${tag.name}',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                  ))
-                              .toList(),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: medium.tags
+                                    .map((tag) => GestureDetector(
+                                          onTap: () {
+                                            _pauseVideoIfNeeded();
+                                            pushPage(
+                                              context,
+                                              builder: (_) => SearchPage(initialQuery: tag.name),
+                                            ).then((_) {
+                                              if (mounted) _resumeVideoIfNeeded();
+                                            });
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 6,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Theme.of(context).colorScheme.surface,
+                                              borderRadius: BorderRadius.circular(16),
+                                              border: Border.all(
+                                                color: Theme.of(context).dividerColor
+                                                    .withValues(alpha: 0.3),
+                                              ),
+                                            ),
+                                            child: Text(
+                                              '#${tag.name}',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                        ))
+                                    .toList(),
+                              ),
+                            ),
+                            if (MurrtubeApi.isAuthenticated)
+                              IconButton(
+                                icon: const Icon(Icons.edit, size: 18),
+                                onPressed: _showTagEditSheet,
+                                tooltip: 'Edit tags',
+                                visualDensity: VisualDensity.compact,
+                              ),
+                          ],
                         ),
                       ],
                     ],
