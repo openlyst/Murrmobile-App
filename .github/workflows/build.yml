@@ -1,0 +1,193 @@
+name: Build & Nightly Release
+
+on:
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: '3.44.1'
+
+jobs:
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - run: flutter pub get
+
+      - run: flutter build apk --release
+
+      - run: flutter build appbundle --release
+
+      - name: Rename artifacts
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk murrmobile-android.apk
+          cp build/app/outputs/flutter-bundle/release/app-release.aab murrmobile-android.aab
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android
+          path: |
+            murrmobile-android.apk
+            murrmobile-android.aab
+
+  build-ios:
+    name: Build iOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - run: flutter pub get
+
+      - run: flutter build ios --release --no-codesign
+
+      - name: Create IPA
+        run: |
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r murrmobile-ios-no-sign.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios
+          path: murrmobile-ios-no-sign.ipa
+
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - run: flutter pub get
+
+      - run: flutter build macos --release
+
+      - name: Archive macOS app
+        run: |
+          cd build/macos/Build/Products/Release
+          zip -r ${{ github.workspace }}/murrmobile-macos.zip murrmobile.app
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: murrmobile-macos.zip
+
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - run: flutter pub get
+
+      - run: flutter build windows --release
+
+      - name: Archive Windows build
+        run: |
+          cd build/windows/x64/runner/Release
+          7z a ${{ github.workspace }}/murrmobile-windows.zip .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: murrmobile-windows.zip
+
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config \
+            libgtk-3-dev liblzma-dev libstdc++-12-dev
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - run: flutter pub get
+
+      - run: flutter build linux --release
+
+      - name: Archive Linux build
+        run: |
+          cd build/linux/x64/release/bundle
+          tar -czf ${{ github.workspace }}/murrmobile-linux.tar.gz .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: murrmobile-linux.tar.gz
+
+  nightly-release:
+    name: Publish Nightly Release
+    needs: [build-android, build-ios, build-macos, build-windows, build-linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Flatten artifacts
+        run: |
+          mkdir -p release-assets
+          find artifacts -type f -exec cp {} release-assets/ \;
+
+      - name: Delete existing nightly release
+        run: |
+          gh release delete nightly --yes --cleanup-tag || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create nightly release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: nightly
+          name: Nightly
+          body: |
+            Automated nightly build from commit ${{ github.sha }}.
+
+            **Branch:** ${{ github.ref_name }}
+            **Commit:** ${{ github.sha }}
+
+            Artifacts are unsigned and intended for testing only.
+          prerelease: true
+          make_latest: 'false'
+          files: release-assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
