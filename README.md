@@ -49,7 +49,7 @@ flutter build windows --release    # Windows
 
 ## Downloads
 
-Prebuilt binaries are on the [releases page](https://github.com/openlyst/Murrmobile-App-builds/releases).
+Prebuilt binaries are on the [releases page](https://github.com/openlyst/Murrmobile-App/releases).
 
 | Platform | Download |
 |----------|----------|
