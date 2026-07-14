@@ -153,6 +153,7 @@ jobs:
   nightly-release:
     name: Publish Nightly Release
     needs: [build-android, build-ios, build-macos, build-windows, build-linux]
+    if: ${{ always() && (needs.build-android.result == 'success' || needs.build-ios.result == 'success' || needs.build-macos.result == 'success' || needs.build-windows.result == 'success' || needs.build-linux.result == 'success') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
