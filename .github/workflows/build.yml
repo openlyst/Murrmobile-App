@@ -34,7 +34,7 @@ jobs:
       - name: Rename artifacts
         run: |
           cp build/app/outputs/flutter-apk/app-release.apk murrmobile-android.apk
-          cp build/app/outputs/flutter-bundle/release/app-release.aab murrmobile-android.aab
+          cp build/app/outputs/bundle/release/app-release.aab murrmobile-android.aab
 
       - uses: actions/upload-artifact@v4
         with:
