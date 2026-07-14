@@ -1,5 +1,3 @@
-> **Note:** Old repo was deleted and recreated here. This project didn't fit with Openlyst's goals, so it moved to its own home.
-
 <div align="center">
   <img src="assets/icon.png" alt="Murrmobile logo" width="120" />
   <h1>Murrmobile</h1>
